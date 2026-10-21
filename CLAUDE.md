@@ -1,6 +1,8 @@
 # G27 Hub
 
-App para Windows 10/11 que faz pelo Logitech G27 o que o LGS 5.10 fazia, com visual do G HUB (G29). Plano completo: `PLANO_G27HUB.md` (fonte da verdade; ler a seção da fase atual antes de começar).
+App para Windows 10/11 que faz pelo Logitech G27 o que o LGS 5.10 fazia, com visual do G HUB (G29). Plano completo: `PLANO_G27HUB.md` (fonte da verdade; ler a seção da fase atual antes de começar). `FUNCIONALIDADES_G29_PARA_G27.md` detalha cada funcionalidade (como fazer, prioridade); os itens já estão distribuídos no plano, marcados com (F). A Fase 5 é dividida em 5a (perfis) e 5b (atribuições).
+
+Mapa de botões e eixos do G27 confirmado no volante: `docs/protocolo-g27.md` e `G27Buttons` (`src/G27Hub.Core/G27State.cs`). Não chutar números de botão: perguntar ao John.
 
 ## Regras (seção 1 do plano)
 1. **Nada de driver de kernel próprio.** Modo Padrão é 100% modo usuário e funciona com Integridade de Memória ligada.

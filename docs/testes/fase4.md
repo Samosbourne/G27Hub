@@ -49,6 +49,9 @@ Feche o `g27cli monitor` se estiver aberto (não precisa mais dele).
 - [ ] A aba Força mostra o gráfico mexendo, "FORÇA ATUAL" e o nome do jogo.
 - [ ] Mexer em INTENSIDADE GLOBAL / MOLA / AMORTECIMENTO / INVERTER **com o jogo aberto** muda a força em ~1 s.
 - [ ] FORÇA CENTRAL ligada → mola extra puxando para o centro durante o jogo.
+- [ ] FORÇA MÍNIMA em 5–10% → detalhes pequenos perto do centro aparecem (sem o volante tremer parado).
+- [ ] PERMITIR QUE O JOGO AJUSTE desligado → a intensidade do FFB nas opções do jogo deixa de fazer efeito.
+- [ ] Ao fechar o jogo, a mola do volante volta ao valor da aba Volante (antes ficava em 40%).
 
 ## 8. Console (ícone de terminal ou Ctrl+Shift+L)
 - [ ] Abre deslizando de baixo; mostra as linhas de conexão, modo nativo e rotação.

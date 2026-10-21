@@ -76,9 +76,9 @@ public partial class MainWindow : Window
         VerboseCheck.IsChecked = AppLog.Verbose;
 
         LoadSettingsIntoUi();
-        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, SpringSlider, DamperSlider, CenterSlider })
+        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, MinForceSlider, SpringSlider, DamperSlider, CenterSlider })
             s.ValueChanged += _ => SettingChanged();
-        foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck })
+        foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck, AllowGameCheck })
             c.Click += (_, _) => SettingChanged();
         FfbEnabled.Click += (_, _) => ToggleFfb();
         AssignWheel.HotspotClicked += b => { AssignWheel.Highlight(b); AssignTitle.Text = $"BOTÃO {b}"; };
@@ -236,7 +236,10 @@ public partial class MainWindow : Window
         _roadLast = t;
         var st = _dev.State;
         var angle = st?.Angle ?? 0;
-        var pct = (int)Math.Round(Road.Step(dt, angle, st?.Throttle ?? 0, st?.Brake ?? 0) * GainSlider.Value / 100);
+        var raw = Road.Step(dt, angle, st?.Throttle ?? 0, st?.Brake ?? 0) * GainSlider.Value / 100;
+        var min = MinForceSlider.Value;
+        if (Math.Abs(raw) > 0.5 && min > 0) raw = Math.Sign(raw) * (min + Math.Abs(raw) * (100 - min) / 100); // mesma força mínima da DLL
+        var pct = (int)Math.Round(Math.Clamp(raw, -100, 100));
         _roadMaxForce = Math.Max(_roadMaxForce, Math.Abs(pct));
         _roadMinAngle = Math.Min(_roadMinAngle, angle);
         _roadMaxAngle = Math.Max(_roadMaxAngle, angle);
@@ -281,6 +284,8 @@ public partial class MainWindow : Window
         AutocenterCheck.IsChecked = _settings.AutocenterOn;
         FfbEnabled.IsChecked = FfbRegistration.IsRegistered();
         GainSlider.Value = FfbRegistration.GetConfig("MasterGain", 100);
+        MinForceSlider.Value = FfbRegistration.GetConfig("MinForce", 0);
+        AllowGameCheck.IsChecked = FfbRegistration.GetConfig("AllowGame", 1) == 1;
         SpringSlider.Value = FfbRegistration.GetConfig("SpringGain", 100);
         DamperSlider.Value = FfbRegistration.GetConfig("DamperGain", 100);
         var center = FfbRegistration.GetConfig("CenterSpring", 0);
@@ -325,6 +330,8 @@ public partial class MainWindow : Window
         SetFfb("DamperGain", (int)Math.Round(DamperSlider.Value), 100);
         SetFfb("CenterSpring", CenterCheck.IsChecked == true ? Math.Max(1, (int)Math.Round(CenterSlider.Value)) : 0, 0);
         SetFfb("Invert", InvertCheck.IsChecked == true ? 1 : 0, 0);
+        SetFfb("MinForce", (int)Math.Round(MinForceSlider.Value), 0);
+        SetFfb("AllowGame", AllowGameCheck.IsChecked == true ? 1 : 0, 1);
     }
 
     static void SetFfb(string name, int value, int def)
@@ -334,6 +341,7 @@ public partial class MainWindow : Window
 
     void ApplyAutocenter()
     {
+        SetFfb("ExitAutocenter", _settings.AutocenterOn ? _settings.Autocenter : 0, 40); // a DLL devolve esta mola quando o jogo fecha
         if (_dev.IsConnected) _dev.SetAutocenter(_settings.AutocenterOn ? _settings.Autocenter : 0);
     }
 
@@ -359,6 +367,8 @@ public partial class MainWindow : Window
     void RestoreFfb_Click(object sender, RoutedEventArgs e)
     {
         GainSlider.Value = SpringSlider.Value = DamperSlider.Value = 100;
+        MinForceSlider.Value = 0;
+        AllowGameCheck.IsChecked = true;
         CenterSlider.Value = 20;
         CenterCheck.IsChecked = InvertCheck.IsChecked = false;
         SettingChanged();

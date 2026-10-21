@@ -386,34 +386,64 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 
 **Aceite:** girar o volante gira a imagem com o ângulo certo; pedais enchem as barras; o console mostra conexão, modo nativo e erros.
 
-### Fase 5 — Perfis + Atribuições
-- [ ] Perfis JSON, troca automática, Atribuições com `SendInput`, importar/exportar.
+### Feito entre a Fase 4 e a 5 (out/2026)
+- [x] Minijogo 3D de force feedback (teste automático + direção livre infinita).
+- [x] Mapa de botões do G27 confirmado no volante (ver `docs/protocolo-g27.md`).
+- [x] Força mínima (zona morta do centro), "Permitir que o jogo ajuste" (ganho do jogo) e mola devolvida no valor do app quando o jogo fecha.
+
+> Itens abaixo marcados com (F) vêm de `FUNCIONALIDADES_G29_PARA_G27.md` (complemento deste plano).
+
+### Fase 5a — Perfis
+- [ ] Perfis JSON; "Desktop: Padrão" + perfis por jogo; troca automática.
+- [ ] (F) Criar, duplicar, renomear, excluir perfil; adicionar jogo pelo `.exe` com ícone extraído.
+- [ ] (F) Cadeado: trava o perfil atual (sem troca automática); perfil persistente (Configurações do app).
+- [ ] (F) Exportar/importar `.g27profile`.
+- [ ] (F) "Usar configurações especiais do volante" por perfil (rotação, mola, FFB sobrescrevem o global).
+- [ ] (F) Menu ☰ (Jogos e apps, Configurações, Console, Sobre); página da engrenagem do card (nome, versão USB, teste de LEDs, calibração, modo).
+- [ ] (F) Configurações do app: notificações liga/desliga.
+
+### Fase 5b — Atribuições
+- [ ] Teclas simples e com modificadores (`SendInput`); arrastar e soltar na imagem.
+- [ ] (F) Macros: gravar, atrasos, repetir enquanto segura, liga/desliga, sequência.
+- [ ] (F) Ações do sistema: mídia, volume, abrir programa, abrir site; trocar de perfil pelo volante.
+- [ ] (F) Camada secundária (segurar um botão = "shift" que dobra as funções).
+- [ ] (F) Desativar atribuições dentro do jogo (por perfil).
+- [ ] (F) Pedal como botão (passar de X% = tecla); câmbio H como sequencial (marcha acima/abaixo = teclas).
+- [ ] (F) Atalho de rotação no volante (combinação de botões alterna 180/270/540/900, com toast e LEDs).
 
 ### Fase 6 — Detector inteligente + base de compatibilidade
 - [ ] `compat-db.json` a partir da seção 8 (com fontes).
 - [ ] Monitor de processos, verificações de pré-voo, notificações (in-app + Windows), "Não avisar para este jogo".
 - [ ] Pergunta pós-sessão 👍/👎 → `compat-user.json`.
 - [ ] "Adicionar jogo" já preenche o perfil pela base.
+- [ ] (F) Detectar jogos instalados (Steam, Epic, Xbox/Microsoft Store, pastas comuns); detecção automática liga/desliga.
+- [ ] (F) Dicas por jogo ("configurações recomendadas no jogo") e aviso de steer lock diferente do app.
 
 **Aceite:** abrir o Forza mostra "Compatível — Modo Padrão"; abrir um jogo marcado `precisa-compat-total` mostra a recomendação sem ativar nada; com um controle de Xbox conectado, o aviso do Device 1 aparece.
 
 ### Fase 7 — LEDs de RPM
 - [ ] Provedores: AC/ACC → F1 → ETS2 → BeamNG/LFS → iRacing → rFactor 2 → Forza. Editor e modo teste.
+- [ ] (F) "Permitir que os jogos controlem os LEDs"; LEDs avançados (limitador de box, bandeiras, combustível, ponto de troca por carro).
+- [ ] (F) Rotação automática por carro (AC, ACC, iRacing).
 
 ### Fase 8 — Modo Compatibilidade Total (opcional, desligado de fábrica)
 - [ ] Gerenciador: detectar/instalar/desinstalar vJoy e HidHide (instaladores oficiais), ponto de restauração, reinício.
 - [ ] Volante virtual (eixos, 25+ botões, POV, FFB), HidHide escondendo o G27 e liberando o app.
 - [ ] Pipeline com curvas/sensibilidade/pedais combinados (≥ 500 Hz) e FFB de volta ao G27.
 - [ ] Seletor por perfil; avisos da seção 4.2.
+- [ ] (F) Mapeamento por eixo (sensibilidade, zona morta, faixa) e inverter eixos.
 
 **Aceite:** num jogo de teste funciona com sensibilidade e FFB; desativar devolve tudo ao normal após reiniciar; o detector recomenda desligar ao abrir um jogo `nativo`.
 
 ### Fase 9 — Assistente de primeira execução + polimento
 - [ ] **Assistente na primeira abertura:** verifica drivers antigos da Logitech, Integridade de Memória, Steam Input, coloca o volante em modo nativo e faz um teste rápido de FFB e LEDs.
 - [ ] Assistente de calibração; instalador (Inno Setup) + desinstalação limpa; README com créditos.
+- [ ] (F) Botão ⓘ com dicas de cada tela; idioma PT/EN.
 
 ### Fase 10 — Extras
-Ver seção 10.
+Ver seção 10. Somam-se (F): linearização do FFB (LUT), overlay de entradas para stream, painel no celular, vibração extra por telemetria, compatibilidade com o SDK da Logitech, verificar atualizações, perfis numa pasta compartilhada (OneDrive/Drive).
+
+**Fora (decidido em 21/10/2026):** TRUEFORCE, atualização de firmware e modo PS (o G27 não tem); batente virtual (o G27 já trava no limite pelo comando de rotação).
 
 ---
 

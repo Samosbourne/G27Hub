@@ -467,6 +467,21 @@ static DWORD WINAPI ReaderThreadProc(LPVOID param) {
 
 /* ================= Mixer thread ================= */
 
+/* Mola do volante na mesma curva do app (G27Commands.Autocenter): 0-100%, 0 desliga. */
+static void hub_autocenter(HANDLE h, DWORD pct) {
+    if (pct == 0) {
+        g27_send(h, CMD_AUTOCENTER_OFF);
+        return;
+    }
+    if (pct > 100) pct = 100;
+    const LONGLONG knee = 0xAAAA;
+    LONGLONG m = (LONGLONG)pct * 0xFFFF / 100;
+    LONGLONG a = m <= knee ? 0x0C * m : 0x0C * knee + 0x06 * (m - knee);
+    LONGLONG b = m <= knee ? 0x80 * m : 0x80 * knee + 0xFF * (m - knee);
+    a >>= 1;
+    g27_autocenter_apply_raw(h, (BYTE)(a / knee), (BYTE)(b / knee));
+}
+
 static DWORD WINAPI MixerThreadProc(LPVOID param) {
     Driver *drv = (Driver *)param;
 
@@ -489,6 +504,8 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
     DWORD lastCfgTick = 0;
     LONG condGain[4] = {100, 100, 100, 100}; /* % por tipo: mola, amortecedor, inercia, atrito */
     LONG centerSpring = 0;
+    LONG minForce = 0;     /* % */
+    BOOL allowGame = TRUE; /* o jogo pode mudar o ganho geral (SetGain) */
 
     HANDLE waitHandles[2];
     waitHandles[0] = drv->stopEvent;
@@ -554,6 +571,8 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
             condGain[0] = (LONG)g27_cfg_get(L"SpringGain", 100);
             condGain[1] = (LONG)g27_cfg_get(L"DamperGain", 100);
             centerSpring = (LONG)g27_cfg_get(L"CenterSpring", 0);
+            minForce = (LONG)g27_cfg_get(L"MinForce", 0);
+            allowGame = g27_cfg_get(L"AllowGame", 1) != 0;
         }
 
         EnterCriticalSection(&drv->cs);
@@ -567,11 +586,17 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
         }
 
         LONGLONG F = (LONGLONG)fDi * (drv->invert ? -1 : 1) + fCond;
-        F = F * (LONGLONG)drv->deviceGain / 10000;
+        F = F * (LONGLONG)(allowGame ? drv->deviceGain : 10000) / 10000;
         F = F * (LONGLONG)drv->masterGain / 100;
 
         if (drv->paused || !drv->actuatorsOn) {
             F = 0;
+        }
+        /* G27 Hub - "Forca minima": pula a zona morta do centro do G27, onde forca pequena nao mexe o volante */
+        if (minForce > 0 && (F > 50 || F < -50)) {
+            LONGLONG mag = F > 0 ? F : -F;
+            mag = minForce * 100 + mag * (10000 - minForce * 100) / 10000;
+            F = F > 0 ? mag : -mag;
         }
         hub_publish((LONG)(F > 100000 ? 100000 : F < -100000 ? -100000 : F), F > 10000 || F < -10000);
         if (F > 10000) F = 10000;
@@ -602,10 +627,9 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
         lastLV = LV;
     }
 
-    /* Hand the wheel back with a modest centering spring, so it doesn't sit limp
-       after the game exits. */
+    /* G27 Hub: devolve a mola do volante no valor escolhido no app (ExitAutocenter; 0 = desligada) */
     g27_send(drv->hWrite, CMD_STOP);
-    g27_autocenter_apply(drv->hWrite, 40);
+    hub_autocenter(drv->hWrite, g27_cfg_get(L"ExitAutocenter", 40));
 
     CancelWaitableTimer(timer);
     CloseHandle(timer);

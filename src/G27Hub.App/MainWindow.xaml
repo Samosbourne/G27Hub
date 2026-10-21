@@ -320,13 +320,15 @@
                                 <CheckBox x:Name="FfbEnabled" Content="ATIVAR FORCE FEEDBACK" IsChecked="True" Margin="0,0,0,20"
                                           ToolTip="Registra (ou remove) o driver de força do G27 Hub. Reabra o jogo depois de mudar."/>
                                 <c:SettingSlider x:Name="GainSlider" Label="INTENSIDADE GLOBAL" Value="100"/>
+                                <c:SettingSlider x:Name="MinForceSlider" Label="FORÇA MÍNIMA (ZONA MORTA DO CENTRO)" Maximum="30" Value="0"
+                                                 ToolTip="O G27 não sente forças muito pequenas perto do centro. Suba aos poucos (5–10%) até sentir os detalhes sem o volante tremer parado."/>
                                 <c:SettingSlider x:Name="SpringSlider" Label="INTENSIDADE DA MOLA" Value="100"/>
                                 <c:SettingSlider x:Name="DamperSlider" Label="INTENSIDADE DO AMORTECIMENTO" Value="100"/>
                                 <CheckBox x:Name="CenterCheck" Content="FORÇA CENTRAL" Margin="0,4,0,12"
                                           ToolTip="Mola extra somada ao force feedback do jogo"/>
                                 <c:SettingSlider x:Name="CenterSlider" Label="INTENSIDADE DA FORÇA CENTRAL" Value="20"/>
-                                <CheckBox Content="PERMITIR QUE O JOGO AJUSTE CONFIGURAÇÕES" IsChecked="True" Margin="0,4,0,14" IsEnabled="False"
-                                          ToolTipService.ShowOnDisabled="True" ToolTip="Depende do SDK da Logitech (extra futuro). Hoje o jogo já controla o próprio force feedback."/>
+                                <CheckBox x:Name="AllowGameCheck" Content="PERMITIR QUE O JOGO AJUSTE CONFIGURAÇÕES" IsChecked="True" Margin="0,4,0,14"
+                                          ToolTip="Ligado: o jogo pode baixar a intensidade geral do force feedback pelas opções dele. Desligado: vale só a INTENSIDADE GLOBAL daqui."/>
                                 <CheckBox x:Name="InvertCheck" Content="INVERTER FORÇA" Margin="0,0,0,24"
                                           ToolTip="Use se o volante puxar para o batente em vez de voltar ao centro"/>
                                 <Button Style="{StaticResource AccentButton}" Content="TESTE AUTOMÁTICO DE FORCE FEEDBACK" Click="StartFfbTest_Click" Margin="0,0,0,10"
