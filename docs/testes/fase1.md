@@ -1,12 +1,8 @@
 # Teste da Fase 1 — núcleo + g27cli + log
 
-Abra um terminal na pasta do projeto. Todos os comandos abaixo usam:
+> ✅ Aceita pelo John em 21/10/2026 ("funcionou tudo"). Ainda faltam anotar: ordem física dos LEDs, qual eixo (Y/Z/Rz) é cada pedal e os botões das marchas.
 
-```
-dotnet run --project src/G27Hub.Cli -- <comando>
-```
-
-(abreviado como `g27cli <comando>`). Acrescente `-v` para ver os bytes enviados.
+Abra um terminal na pasta do projeto. No PowerShell, os comandos abaixo são digitados com `.\` na frente (ex.: `.\g27cli leds teste`); o `g27cli.cmd` da raiz chama `dotnet run --project src/G27Hub.Cli -- <comando>`. Acrescente `-v` para ver os bytes enviados.
 
 Antes: G27 ligado na tomada e no USB, **nenhum** jogo aberto, Steam fechada.
 

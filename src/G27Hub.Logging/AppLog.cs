@@ -37,6 +37,19 @@ public static class AppLog
     public static void Aviso(string origem, string msg) => Write(LogEventLevel.Warning, "AVISO", origem, msg);
     public static void Erro(string origem, string msg, Exception? ex = null) => Write(LogEventLevel.Error, "ERRO", origem, msg, ex);
 
+    /// <summary>Nível por nome (vindo de fora, ex.: pipe da DLL); desconhecido vira INFO.</summary>
+    public static void Write(string nivel, string origem, string msg)
+    {
+        switch (nivel)
+        {
+            case "DEBUG": Debug(origem, msg); break;
+            case "OK": Ok(origem, msg); break;
+            case "AVISO": Aviso(origem, msg); break;
+            case "ERRO": Erro(origem, msg); break;
+            default: Info(origem, msg); break;
+        }
+    }
+
     static void Write(LogEventLevel level, string nivel, string origem, string msg, Exception? ex = null) =>
         Log.ForContext("Nivel", nivel).ForContext("Origem", origem).Write(level, ex, "{Msg:l}", msg);
 }

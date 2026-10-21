@@ -49,6 +49,9 @@ static int Run(string[] a)
         case "monitor":
             return Monitor();
 
+        case "ffb" when a.Length > 1:
+            return Ffb(a[1..]);
+
         case "log":
             Console.WriteLine($"Pasta: {AppLog.LogDir}");
             var file = new DirectoryInfo(AppLog.LogDir).GetFiles("g27hub-*.log").MaxBy(f => f.LastWriteTime);
@@ -70,6 +73,15 @@ static int Run(string[] a)
                   monitor                 entradas ao vivo, reconecta sozinho (Ctrl+C sai)
                   log                     caminho e fim do arquivo de log
 
+                  ffb register|unregister registra/remove a g27ffb.dll (x64 + x86) como driver de FFB (HKCU)
+                  ffb status              registro, configuração e força atual vinda do jogo
+                  ffb pulse               dois pulsos curtos direto no HID (sem DirectInput)
+                  ffb test [x64|x86] [const|sine|spring|damper|all]
+                                          testa via DirectInput, como um jogo (x86 = jogo 32 bits)
+                  ffb gain <0-100>        ganho geral do FFB
+                  ffb invert on|off       inverte o sentido da força
+                  ffb log 0|1|2           log da DLL: desligado / eventos / detalhado
+
                   -v                      modo detalhado (mostra os bytes enviados)
                 """);
             return a.Length == 0 ? 0 : 2;
@@ -88,9 +100,77 @@ static int WithDevice(Action<G27Device> action)
     return 0;
 }
 
+static int Ffb(string[] a)
+{
+    switch (a[0])
+    {
+        case "register":
+            return FfbRegistration.Register() ? 0 : 1;
+
+        case "unregister":
+            FfbRegistration.Unregister();
+            return 0;
+
+        case "status":
+            foreach (var line in FfbRegistration.Status()) Console.WriteLine(line);
+            var s = FfbShared.Read();
+            Console.WriteLine(s == null
+                ? "Força: nenhum jogo com a DLL carregada"
+                : $"Força: {s.Force / 100.0:+0.0;-0.0}% (pid {s.Pid}, há {s.AgeMs} ms, {s.Clips} ticks saturados)");
+            return 0;
+
+        case "pulse":
+            return WithDevice(d =>
+            {
+                Thread.Sleep(200);
+                foreach (var pct in new[] { 30, -30 })
+                {
+                    var before = d.State?.Angle;
+                    d.SetForce(pct);
+                    Thread.Sleep(300);
+                    d.SetForce(0);
+                    Thread.Sleep(400);
+                    AppLog.Info("FFB", $"Pulso {pct:+0;-0}%: volante {before:+0.0;-0.0}° → {d.State?.Angle:+0.0;-0.0}°");
+                }
+            });
+
+        case "test":
+            var arch = a.Skip(1).FirstOrDefault(x => x is "x64" or "x86") ?? "x64";
+            var mode = a.Skip(1).FirstOrDefault(x => x is not ("x64" or "x86")) ?? "const";
+            var exe = Path.Combine(AppContext.BaseDirectory, arch, "g27fftest.exe");
+            if (!File.Exists(exe))
+            {
+                AppLog.Erro("FFB", $"{exe} não existe (rode src/native/build.ps1 e recompile)");
+                return 1;
+            }
+            FfbLogServer.Start();
+            AppLog.Info("FFB", $"Teste DirectInput {arch} '{mode}'");
+            using (var p = System.Diagnostics.Process.Start(exe, mode))
+                p.WaitForExit();
+            Thread.Sleep(500); // últimas linhas do pipe
+            return 0;
+
+        case "gain" when a.Length > 1 && int.TryParse(a[1], out var gain) && gain is >= 0 and <= 100:
+            FfbRegistration.SetConfig("MasterGain", gain);
+            return 0;
+
+        case "invert" when a.Length > 1 && a[1] is "on" or "off":
+            FfbRegistration.SetConfig("Invert", a[1] == "on" ? 1 : 0);
+            return 0;
+
+        case "log" when a.Length > 1 && a[1] is "0" or "1" or "2":
+            FfbRegistration.SetConfig("Log", int.Parse(a[1]));
+            return 0;
+
+        default:
+            return Run([]);
+    }
+}
+
 static int Monitor()
 {
     AppLog.Memory.Added -= Print; // os logs aparecem dentro do painel
+    FfbLogServer.Start();
     using var dev = new G27Device();
     using var exit = new ManualResetEvent(false);
     Console.CancelKeyPress += (_, e) => { e.Cancel = true; exit.Set(); };

@@ -35,11 +35,20 @@ public class G27CommandsTests
     public void AutocenterFullAndHalf()
     {
         var full = G27Commands.Autocenter(100);
-        Assert.Equal(new byte[] { 0xFE, 0x0D, 0x07, 0x07, 0xFF, 0, 0 }, full[0]);
-        Assert.Equal(new byte[] { 0x14, 0, 0, 0, 0, 0, 0 }, full[1]);
+        Assert.Equal(G27Commands.AutocenterOff, full[0]); // desliga antes de reconfigurar
+        Assert.Equal(new byte[] { 0xFE, 0x0D, 0x07, 0x07, 0xFF, 0, 0 }, full[1]);
+        Assert.Equal(new byte[] { 0x14, 0, 0, 0, 0, 0, 0 }, full[2]);
 
-        Assert.Equal(new byte[] { 0xFE, 0x0D, 0x04, 0x04, 0x5F, 0, 0 }, G27Commands.Autocenter(50)[0]);
+        Assert.Equal(new byte[] { 0xFE, 0x0D, 0x04, 0x04, 0x5F, 0, 0 }, G27Commands.Autocenter(50)[1]);
     }
+
+    [Theory]
+    [InlineData(0, 0x80)]
+    [InlineData(100, 0xFF)]
+    [InlineData(-100, 0x01)]
+    [InlineData(50, 0xBF)]
+    public void ConstantForceLevel(int percent, byte level) =>
+        Assert.Equal(new byte[] { 0x11, 0x08, level, 0x80, 0, 0, 0 }, G27Commands.ConstantForce(percent));
 
     [Theory]
     [InlineData(0.5, 900, 0)]

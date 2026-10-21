@@ -4,10 +4,15 @@
     <ProjectReference Include="..\G27Hub.Core\G27Hub.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- g27ffb.dll e g27fftest.exe (x64/ e x86/) gerados por src/native/build.ps1 -->
+    <None Include="..\native\out\**\*" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>g27cli</AssemblyName>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

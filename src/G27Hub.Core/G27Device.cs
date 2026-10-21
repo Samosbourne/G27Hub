@@ -123,6 +123,13 @@ public sealed class G27Device : IDisposable
         AppLog.Ok("HID", percent <= 0 ? "Autocentro desligado" : $"Autocentro em {Math.Min(percent, 100)}%");
     }
 
+    /// <summary>Força constante direta no HID (-100..100%), sem DirectInput. 0 para.</summary>
+    public void SetForce(int percent)
+    {
+        Send(percent == 0 ? StopForces : ConstantForce(percent));
+        AppLog.Debug("FFB", $"Força direta {percent}%");
+    }
+
     void Send(byte[] cmd)
     {
         if (_stream == null || Device == null) throw new InvalidOperationException("G27 não conectado");

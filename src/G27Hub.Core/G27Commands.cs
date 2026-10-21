@@ -38,6 +38,13 @@ public static class G27Commands
         a >>= 1;
         byte k = (byte)(a / knee), force = (byte)(b / knee);
 
-        return [[0xFE, 0x0D, k, k, force, 0, 0], [0x14, 0, 0, 0, 0, 0, 0]];
+        // O volante ignora novos parâmetros com a mola ligada: desliga, configura, liga.
+        return [AutocenterOff, [0xFE, 0x0D, k, k, force, 0, 0], [0x14, 0, 0, 0, 0, 0, 0]];
     }
+
+    /// <summary>Força constante no slot 1: -100..100% (positivo empurra para a esquerda, medido pelo gcampa).</summary>
+    public static byte[] ConstantForce(int percent) =>
+        [0x11, 0x08, (byte)(0x80 + Math.Clamp(percent, -100, 100) * 127 / 100), 0x80, 0, 0, 0];
+
+    public static byte[] StopForces => [0x13, 0, 0, 0, 0, 0, 0];
 }
