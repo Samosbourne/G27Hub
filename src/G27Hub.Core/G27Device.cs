@@ -102,6 +102,15 @@ public sealed class G27Device : IDisposable
         }
     }
 
+    /// <summary>Fecha a conexão para o <see cref="Start"/> reconectar do zero (reenvia modo nativo se precisar).</summary>
+    public void Reset()
+    {
+        Interlocked.Exchange(ref _stream, null)?.Dispose();
+        _changed.Set();
+    }
+
+    public bool IsNative => _stream != null && Device?.ProductID == PidNative;
+
     public void SetRange(int degrees)
     {
         Range = Math.Clamp(degrees, MinRange, MaxRange);
@@ -123,24 +132,24 @@ public sealed class G27Device : IDisposable
         AppLog.Ok("HID", percent <= 0 ? "Autocentro desligado" : $"Autocentro em {Math.Min(percent, 100)}%");
     }
 
-    /// <summary>Força constante direta no HID (-100..100%), sem DirectInput. 0 para.</summary>
-    public void SetForce(int percent)
+    /// <summary>
+    /// Força constante direta no HID (-100..100%, positivo empurra para a esquerda), sem DirectInput. 0 para.
+    /// Sem log: o teste de FFB chama isto 60 vezes por segundo.
+    /// </summary>
+    public void SetForce(int percent) => Send(percent == 0 ? StopForces : ConstantForce(percent), log: false);
+
+    void Send(byte[] cmd, bool log = true)
     {
-        Send(percent == 0 ? StopForces : ConstantForce(percent));
-        AppLog.Debug("FFB", $"Força direta {percent}%");
+        var s = _stream;
+        if (s == null || Device == null) throw new InvalidOperationException("G27 não conectado");
+        Write(s, Device, cmd, log);
     }
 
-    void Send(byte[] cmd)
-    {
-        if (_stream == null || Device == null) throw new InvalidOperationException("G27 não conectado");
-        Write(_stream, Device, cmd);
-    }
-
-    static void Write(HidStream s, HidDevice dev, byte[] cmd)
+    static void Write(HidStream s, HidDevice dev, byte[] cmd, bool log = true)
     {
         var buf = new byte[dev.GetMaxOutputReportLength()]; // [0] = report ID 0
         cmd.CopyTo(buf, 1);
-        AppLog.Debug("HID", "→ " + Convert.ToHexString(cmd));
+        if (log) AppLog.Debug("HID", "→ " + Convert.ToHexString(cmd));
         s.Write(buf);
     }
 

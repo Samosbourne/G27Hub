@@ -28,13 +28,17 @@ src/G27Hub.Logging   AppLog: Serilog (arquivo rotativo) + buffer em memória; Ff
 src/G27Hub.Core      protocolo (G27Commands), dispositivo (G27Device), estado (G27State),
                      registro do FFB em HKCU (FfbRegistration), memória compartilhada (FfbShared)
 src/G27Hub.Cli       g27cli
+src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G HUB); desenhos próprios do G27/pedais/câmbio
+                     em Controls/. MainWindow lê o G27Device a 60 fps (CompositionTarget.Rendering), aplica ajustes
+                     (config.json + HKCU\Software\G27Hub\FFB), console real, bandeja (NotifyIcon), iniciar com o Windows (HKCU Run).
+                     "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").
 src/native/fftest    g27fftest.exe: testa o FFB via DirectInput como um jogo (x64 e x86)
 tests/G27Hub.Core.Tests
 docs/protocolo-g27.md, docs/testes/faseN.md
 ```
-Fases futuras adicionam: `G27Hub.Games`, `G27Hub.Virtual`, `G27Hub.Telemetry`, `G27Hub.App` (WPF + WPF-UI), `data/compat-db.json`, `assets/`.
+Fases futuras adicionam: `G27Hub.Games`, `G27Hub.Virtual`, `G27Hub.Telemetry`, `data/compat-db.json`, `assets/`.
 
 Todos os projetos .NET são `net10.0-windows`. O código nativo usa o MSVC + CMake do VS 2026 Build Tools (não precisa estar no PATH; o `build.ps1` acha pelo vswhere) e gera `src/native/out/{x64,x86}/`, que o g27cli copia para a sua pasta de saída.
 
@@ -42,6 +46,7 @@ Dados: config em `%APPDATA%\G27Hub\`, logs em `%LOCALAPPDATA%\G27Hub\logs\`.
 
 ## Comandos
 ```
+.\g27hub                        # abre o app (g27hub.cmd = dotnet run --project src/G27Hub.App)
 .\src\native\build.ps1          # DLL de FFB + g27fftest, x64 e x86 (antes do dotnet build quando mexer no C)
 dotnet build
 dotnet test

@@ -147,11 +147,31 @@ public static class FfbRegistration
         yield return $"Config: Log={cfg?.GetValue("Log") ?? 1} MasterGain={cfg?.GetValue("MasterGain") ?? 100}% Invert={cfg?.GetValue("Invert") ?? 0}";
     }
 
+    /// <summary>Valores lidos pela DLL a cada segundo (Log, MasterGain, Invert, SpringGain, DamperGain, CenterSpring).</summary>
     public static void SetConfig(string name, int value)
     {
         using var cfg = Hkcu().CreateSubKey(ConfigKey);
         cfg.SetValue(name, value, RegistryValueKind.DWord);
-        AppLog.Ok("FFB", $"{name} = {value} (vale ao reabrir o jogo)");
+        AppLog.Ok("FFB", $"{name} = {value}");
+    }
+
+    public static int GetConfig(string name, int def)
+    {
+        using var cfg = Hkcu().OpenSubKey(ConfigKey);
+        return cfg?.GetValue(name) is int v ? v : def;
+    }
+
+    /// <summary>As duas DLLs registradas, existindo, e a chave OEM apontando para nós.</summary>
+    public static bool IsRegistered()
+    {
+        using var ff = Hkcu().OpenSubKey(FfKey);
+        if (ff?.GetValue("CLSID") as string != Clsid) return false;
+        foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        {
+            using var k = Hkcu(view).OpenSubKey(ClsidKey + @"\InProcServer32");
+            if (k?.GetValue("") is not string path || !File.Exists(path)) return false;
+        }
+        return true;
     }
 
     static void WriteCom(RegistryView view, string dll)

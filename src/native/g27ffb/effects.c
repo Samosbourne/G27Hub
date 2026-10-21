@@ -351,7 +351,7 @@ static LONGLONG sat0(DWORD s) {
 }
 
 LONG effects_mix_cond(Effect effects[MAX_EFFECTS], LONGLONG nowQpc, LONGLONG freq,
-                       LONG pos, LONG velN, LONG accN) {
+                       LONG pos, LONG velN, LONG accN, const LONG condGain[4]) {
     LONGLONG total = 0;
 
     for (int i = 0; i < MAX_EFFECTS; i++) {
@@ -405,6 +405,7 @@ LONG effects_mix_cond(Effect effects[MAX_EFFECTS], LONGLONG nowQpc, LONGLONG fre
         }
 
         LONGLONG contrib = f * (LONGLONG)e->gain / 10000;
+        contrib = contrib * condGain[e->typeId - 7] / 100; /* G27 Hub: intensidade por tipo (aba Forca) */
         total += contrib;
     }
 

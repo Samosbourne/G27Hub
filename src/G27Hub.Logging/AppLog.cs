@@ -17,12 +17,22 @@ public static class AppLog
 
     public static readonly MemorySink Memory = new(5000);
 
+    /// <summary>Modo detalhado liga/desliga em tempo real (console do app).</summary>
+    public static readonly LoggingLevelSwitch Level = new();
+
+    public static bool Verbose
+    {
+        get => Level.MinimumLevel == LogEventLevel.Debug;
+        set => Level.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
+    }
+
     const string Template = "{Timestamp:HH:mm:ss}  {Nivel,-5}  {Origem,-10} {Message:lj}{NewLine}{Exception}";
 
     public static void Init(bool verbose = false)
     {
+        Verbose = verbose;
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Is(verbose ? LogEventLevel.Debug : LogEventLevel.Information)
+            .MinimumLevel.ControlledBy(Level)
             .WriteTo.File(Path.Combine(LogDir, "g27hub-.log"), rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14, shared: true, outputTemplate: Template)
             .WriteTo.Sink(Memory)

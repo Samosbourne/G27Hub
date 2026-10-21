@@ -38,7 +38,21 @@ Lidas pelo descritor HID (parser do HidSharp), não por offsets fixos.
 | Vendor | 0xFF000001 | 2 bytes | desconhecido |
 | Botão 23 | Button 23 | 0/1 | |
 
-A confirmar: qual de Y/Z/Rz é acelerador, freio e embreagem; quais botões são as marchas 1–6 e a ré. O botão 16 aparece pressionado com tudo em repouso.
+### Botões (1-based, como no joy.cpl) — `G27Buttons` em `src/G27Hub.Core/G27State.cs`
+| Botões | Controle | Status |
+|---|---|---|
+| 1–4 | pretos da base do câmbio | dedução |
+| 5, 6 | borboletas (direita, esquerda) | dedução |
+| 8, 21, 22 | vermelhos da lateral esquerda do volante (cima, meio, baixo) | ✅ John, 21/10 |
+| 7, 19, 20 | vermelhos da lateral direita do volante (cima, meio, baixo) | ✅ John, 21/10 |
+| 9–12 | vermelhos do câmbio (da esquerda p/ direita: 12, 9, 10, 11) | ✅ John, 21/10 |
+| 13–18 | marchas 1ª–6ª | ✅ 1ª–3ª pelo John; 4ª–6ª pela sequência |
+| 23 | ré (o bit separado depois dos bytes do fabricante) | dedução |
+| Hat | direcional do câmbio | |
+
+O "botão 16 apertado em repouso" visto na Fase 1 era o câmbio parado na 4ª.
+
+Pedais: Z = acelerador, Rz = freio, Y = embreagem (a confirmar).
 
 ## Registro do FFB (HKCU, sem admin)
 - COM: `HKCU\Software\Classes\CLSID\{44CD99D0-68D8-40C3-917D-0F52047DFCEB}\InProcServer32` → DLL x64; a mesma chave na visão 32 bits (`WOW6432Node`) → DLL x86.

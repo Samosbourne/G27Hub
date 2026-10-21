@@ -51,6 +51,31 @@ public class G27CommandsTests
         Assert.Equal(new byte[] { 0x11, 0x08, level, 0x80, 0, 0, 0 }, G27Commands.ConstantForce(percent));
 
     [Theory]
+    [InlineData(new int[0], "N")]
+    [InlineData(new[] { 9, 10, 11, 12 }, "N")] // vermelhos do câmbio não são marcha
+    [InlineData(new[] { 13 }, "1")]
+    [InlineData(new[] { 15, 2 }, "3")]
+    [InlineData(new[] { 18 }, "6")]
+    [InlineData(new[] { 23 }, "R")]
+    public void GearFromButtons(int[] buttons, string gear) =>
+        Assert.Equal(gear, new G27State(new Dictionary<string, AxisValue>(), buttons, -1, 900).Gear);
+
+    [Fact]
+    public void PedalsAreInvertedAndMapped()
+    {
+        var axes = new Dictionary<string, AxisValue>
+        {
+            ["Z"] = new(0, 0, 255),   // acelerador no fundo
+            ["Rz"] = new(255, 0, 255), // freio solto
+            ["Y"] = new(128, 0, 255),  // embreagem pela metade
+        };
+        var s = new G27State(axes, [], -1, 900);
+        Assert.Equal(1, s.Throttle, 3);
+        Assert.Equal(0, s.Brake, 3);
+        Assert.Equal(0.498, s.Clutch, 3);
+    }
+
+    [Theory]
     [InlineData(0.5, 900, 0)]
     [InlineData(0.0, 900, -450)]
     [InlineData(1.0, 900, 450)]

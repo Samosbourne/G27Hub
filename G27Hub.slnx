@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/G27Hub.App/G27Hub.App.csproj" />
     <Project Path="src/G27Hub.Cli/G27Hub.Cli.csproj" />
     <Project Path="src/G27Hub.Core/G27Hub.Core.csproj" />
     <Project Path="src/G27Hub.Logging/G27Hub.Logging.csproj" />

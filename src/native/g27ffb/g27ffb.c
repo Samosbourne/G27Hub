@@ -486,6 +486,9 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
     BYTE lastLV = 0x80;
     DWORD lastSendTick = GetTickCount();
     DWORD lastLogTick = 0;
+    DWORD lastCfgTick = 0;
+    LONG condGain[4] = {100, 100, 100, 100}; /* % por tipo: mola, amortecedor, inercia, atrito */
+    LONG centerSpring = 0;
 
     HANDLE waitHandles[2];
     waitHandles[0] = drv->stopEvent;
@@ -543,10 +546,25 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
             if (accN < -10000) accN = -10000;
         }
 
+        /* G27 Hub: os ajustes da aba Forca valem com o jogo aberto (relidos 1x por segundo) */
+        if (GetTickCount() - lastCfgTick >= 1000) {
+            lastCfgTick = GetTickCount();
+            drv->invert = g27_cfg_get(L"Invert", 0);
+            drv->masterGain = g27_cfg_get(L"MasterGain", 100);
+            condGain[0] = (LONG)g27_cfg_get(L"SpringGain", 100);
+            condGain[1] = (LONG)g27_cfg_get(L"DamperGain", 100);
+            centerSpring = (LONG)g27_cfg_get(L"CenterSpring", 0);
+        }
+
         EnterCriticalSection(&drv->cs);
         LONG fDi = effects_mix_force(drv->effects, now.QuadPart, freq.QuadPart);
-        LONG fCond = effects_mix_cond(drv->effects, now.QuadPart, freq.QuadPart, pos, velN, accN);
+        LONG fCond = effects_mix_cond(drv->effects, now.QuadPart, freq.QuadPart, pos, velN, accN, condGain);
         LeaveCriticalSection(&drv->cs);
+
+        /* "Forca central": mola fixa somada ao que o jogo pede */
+        if (haveSample && centerSpring > 0) {
+            fCond += (LONG)(-(LONGLONG)pos * centerSpring / 100);
+        }
 
         LONGLONG F = (LONGLONG)fDi * (drv->invert ? -1 : 1) + fCond;
         F = F * (LONGLONG)drv->deviceGain / 10000;

@@ -1,0 +1,685 @@
+﻿<Window x:Class="G27Hub.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:G27Hub.App.Controls"
+        Title="G27 Hub" Width="1280" Height="760" MinWidth="1040" MinHeight="660"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Text}" FontFamily="Segoe UI" WindowStyle="None" ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="56" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="NavPath" TargetType="Path">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="StrokeThickness" Value="1.6"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+        </Style>
+        <Style x:Key="PanelScroll" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+            <Setter Property="Background" Value="{StaticResource Panel}"/>
+        </Style>
+        <Style x:Key="Chip" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Mono}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="IsChecked" Value="True"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="B" BorderBrush="#333" BorderThickness="1" CornerRadius="10" Padding="9,2">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="#1A1A1A"/>
+                                <Setter TargetName="B" Property="BorderBrush" Value="#555"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Dropdown" TargetType="Border">
+            <Setter Property="Background" Value="#2A2A2A"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="Root" Background="{StaticResource Bg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <!-- ===================== barra superior ===================== -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+                <Button x:Name="MenuButton" Style="{StaticResource IconButton}" ToolTip="Menu">
+                    <TextBlock Text="&#xE700;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button x:Name="BackButton" Style="{StaticResource IconButton}" Click="Back_Click" ToolTip="Voltar" Visibility="Collapsed">
+                    <TextBlock Text="&#xE72B;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <TextBlock x:Name="HeaderTitle" Text="G27" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0" Visibility="Collapsed"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button x:Name="ProfileButton" Click="Profile_Click" WindowChrome.IsHitTestVisibleInChrome="True" Cursor="Hand" Margin="0,0,14,0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <StackPanel Background="Transparent" VerticalAlignment="Center">
+                                <TextBlock Text="PERFIL PERSISTENTE" Style="{StaticResource SettingLabel}" FontSize="9"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72E;" Style="{StaticResource Icon}" FontSize="11" Foreground="{StaticResource Accent}" Margin="0,0,5,0"/>
+                                    <TextBlock x:Name="ProfileName" Text="DESKTOP: Padrão" Foreground="{StaticResource Accent}" FontSize="12.5" FontWeight="SemiBold"/>
+                                    <TextBlock Text="&#xE70D;" Style="{StaticResource Icon}" FontSize="9" Foreground="{StaticResource Accent}" Margin="6,2,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Style="{StaticResource IconButton}" ToolTip="Conta">
+                    <TextBlock Text="&#xE77B;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button x:Name="AppSettingsButton" Style="{StaticResource IconButton}" ToolTip="Configurações do app" Click="AppSettings_Click">
+                    <TextBlock Text="&#xE713;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Rectangle Width="1" Height="18" Fill="#2A2A2A" Margin="8,0"/>
+                <Button Style="{StaticResource IconButton}" Width="46" Click="Minimize_Click">
+                    <TextBlock Text="&#xE921;" Style="{StaticResource Icon}" FontSize="10" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button Style="{StaticResource IconButton}" Width="46" Click="Maximize_Click">
+                    <TextBlock x:Name="MaxIcon" Text="&#xE922;" Style="{StaticResource Icon}" FontSize="10" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button Style="{StaticResource IconButton}" Width="46" Click="Close_Click">
+                    <TextBlock Text="&#xE8BB;" Style="{StaticResource Icon}" FontSize="10" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+            </StackPanel>
+
+            <Popup x:Name="ProfilePopup" PlacementTarget="{Binding ElementName=ProfileButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6">
+                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="6" Width="250">
+                    <StackPanel x:Name="ProfileList">
+                        <TextBlock Text="PERFIS (FASE 5)" Style="{StaticResource SettingLabel}" Margin="8,4,0,6"/>
+                    </StackPanel>
+                </Border>
+            </Popup>
+            <Popup x:Name="AppSettingsPopup" PlacementTarget="{Binding ElementName=AppSettingsButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6" HorizontalOffset="-240">
+                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="16" Width="290">
+                    <StackPanel>
+                        <TextBlock Text="CONFIGURAÇÕES DO APP" Style="{StaticResource SettingLabel}" Margin="0,0,0,12"/>
+                        <CheckBox x:Name="StartWithWindowsCheck" Content="INICIAR COM O WINDOWS (NA BANDEJA)" Margin="0,0,0,10" Click="StartWithWindows_Click"/>
+                        <CheckBox x:Name="CloseToTrayCheck" Content="O X FECHA PARA A BANDEJA (O VOLANTE CONTINUA CONFIGURADO)" Click="CloseToTray_Click"/>
+                    </StackPanel>
+                </Border>
+            </Popup>
+        </Grid>
+
+        <!-- ===================== telas ===================== -->
+        <Grid Grid.Row="1">
+
+            <!-- 5.2 sem volante -->
+            <Grid x:Name="HomeScreen" Background="Transparent">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,60">
+                    <c:G27Wheel Width="150" Height="150" Opacity="0.18" Margin="0,0,0,26"/>
+                    <TextBlock Text="Conecte seu volante G27" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Ligue o G27 na tomada e no USB. Ele aparece aqui sozinho." Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 5.3 lista de dispositivos -->
+            <Grid x:Name="DevicesScreen" Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,24,0">
+                    <Button Style="{StaticResource IconButton}" ToolTip="Grade">
+                        <TextBlock Text="&#xE80A;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Foreground="White" ToolTip="Lista">
+                        <TextBlock Text="&#xE8FD;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                </StackPanel>
+                <Border x:Name="DeviceCard" Width="640" Height="128" CornerRadius="4" Background="{StaticResource Card}" Cursor="Hand"
+                        VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,80" MouseLeftButtonUp="DeviceCard_Click">
+                    <Grid Margin="22,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <c:G27Wheel Width="96" Height="96" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="22,0,0,0">
+                            <TextBlock Text="G27" FontSize="22" FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource Ok}" Margin="0,0,8,0"/>
+                                <TextBlock x:Name="DeviceStatus" Text="Modo nativo · 900° · Force feedback ativo · Modo Padrão" Style="{StaticResource Hint}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="2" Style="{StaticResource IconButton}" ToolTip="Configurar">
+                            <TextBlock Text="&#xE713;" Style="{StaticResource Icon}" FontSize="18" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Button>
+                    </Grid>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource CardHover}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+            </Grid>
+
+            <!-- 5.4 página do volante -->
+            <Grid x:Name="WheelScreen" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="48"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!-- barra lateral de ícones -->
+                <Grid Background="{StaticResource Sidebar}">
+                    <StackPanel x:Name="Nav">
+                        <RadioButton Style="{StaticResource NavItem}" Tag="atribuicoes" ToolTip="Atribuições" Checked="Nav_Checked">
+                            <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                        </RadioButton>
+                        <RadioButton x:Name="NavVolante" Style="{StaticResource NavItem}" Tag="volante" ToolTip="Volante" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Data="M1,9 A8,8 0 1 1 17,9 A8,8 0 1 1 1,9 M5.5,9 A3.5,3.5 0 1 1 12.5,9 A3.5,3.5 0 1 1 5.5,9 M1.2,10 L5.5,9.6 M16.8,10 L12.5,9.6 M9,12.5 L9,16.8"/>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavItem}" Tag="pedais" ToolTip="Pedais" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Data="M2,5 H5.5 V13.5 H2 Z M7.3,5 H10.8 V13.5 H7.3 Z M12.8,2.5 H16 V13.5 H12.8 Z M1,16.5 H17"/>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavItem}" Tag="forca" ToolTip="Força" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Data="M10.5,1 L3.5,10 H8.5 L7.5,17 L14.5,7.5 H9.5 Z"/>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavItem}" Tag="cambio" ToolTip="Câmbio" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Data="M3,2.5 V15.5 M9,2.5 V15.5 M15,2.5 V15.5 M3,9 H15"/>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavItem}" Tag="leds" ToolTip="LEDs" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Fill="{Binding Stroke, RelativeSource={RelativeSource Self}}" StrokeThickness="0"
+                                  Data="M0.4,9 A1.6,1.6 0 1 1 3.6,9 A1.6,1.6 0 1 1 0.4,9 M4,9 A1.6,1.6 0 1 1 7.2,9 A1.6,1.6 0 1 1 4,9 M7.4,9 A1.6,1.6 0 1 1 10.6,9 A1.6,1.6 0 1 1 7.4,9 M10.8,9 A1.6,1.6 0 1 1 14,9 A1.6,1.6 0 1 1 10.8,9 M14.4,9 A1.6,1.6 0 1 1 17.6,9 A1.6,1.6 0 1 1 14.4,9"/>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavItem}" Tag="teste" ToolTip="Teste e calibração" Checked="Nav_Checked">
+                            <Path Style="{StaticResource NavPath}" Data="M9,1 V5 M9,13 V17 M1,9 H5 M13,9 H17 M4,9 A5,5 0 1 1 14,9 A5,5 0 1 1 4,9"/>
+                        </RadioButton>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,8">
+                        <Button Style="{StaticResource IconButton}" Width="48" ToolTip="Configurações do G27">
+                            <TextBlock Text="&#xE713;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Button>
+                        <Button Style="{StaticResource IconButton}" Width="48" Click="ConsoleToggle_Click" ToolTip="Console de diagnóstico (Ctrl+Shift+L)">
+                            <Grid>
+                                <TextBlock Text="&#xE756;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                <Ellipse x:Name="ConsoleBadge" Visibility="Collapsed" Width="7" Height="7" Fill="{StaticResource Error}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-5,0"/>
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="Sections" Grid.Column="1">
+
+                    <!-- ===== Volante ===== -->
+                    <Grid Tag="volante">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <Grid Margin="0,0,0,22">
+                                    <TextBlock Text="Volante" Style="{StaticResource SectionTitle}"/>
+                                    <TextBlock Text="&#xE72E;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13" ToolTip="Ajustes deste perfil"/>
+                                </Grid>
+                                <c:SettingSlider Label="SENSIBILIDADE" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True"
+                                                 ToolTip="Disponível só no Modo Compatibilidade Total (o jogo veria um vJoy em vez do G27)."/>
+                                <c:SettingSlider x:Name="RangeSlider" Label="LIMITES OPERACIONAIS (ÂNGULO)" Minimum="40" Maximum="900" Value="900"/>
+                                <c:SettingSlider x:Name="AutocenterSlider" Label="CENTRALIZAÇÃO DA FORÇA DA MOLA" Value="20"/>
+                                <CheckBox x:Name="AutocenterCheck" Content="MOLA CENTRALIZADORA PARA JOGOS SEM FEEDBACK DE FORÇA" Margin="0,4,0,24"
+                                          ToolTip="Mola do próprio volante. Jogos com force feedback desligam a mola enquanto estão abertos."/>
+                                <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreWheel_Click"/>
+                                <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
+                                    <TextBlock Style="{StaticResource Hint}">
+                                        <Run Text="Modo Padrão" Foreground="White" FontWeight="SemiBold"/><Run Text=": o jogo vê o G27 de verdade. A sensibilidade só existe no Modo Compatibilidade Total."/>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Viewbox Grid.Column="1" Margin="40,24,40,40">
+                            <Canvas Width="700" Height="540">
+                                <TextBlock x:Name="AngleText" Canvas.Left="250" Canvas.Top="0" Width="200" TextAlignment="Center" Text="0°" FontSize="30" FontWeight="SemiBold"/>
+                                <Path Canvas.Left="343" Canvas.Top="44" Data="M0,0 L14,0 L7,8 Z" Fill="White"/>
+                                <Canvas x:Name="ArcTicks"/>
+                                <TextBlock x:Name="RangeLabel" Canvas.Left="200" Canvas.Top="112" Width="300" TextAlignment="Center" Text="900° LIMITE OPERACIONAL"
+                                           FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource Accent}"/>
+                                <c:G27Wheel x:Name="MainWheel" Canvas.Left="150" Canvas.Top="128" Width="400" Height="400"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Grid>
+
+                    <!-- ===== Pedais ===== -->
+                    <Grid Tag="pedais" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <Grid Margin="0,0,0,22">
+                                    <TextBlock Text="Pedais" Style="{StaticResource SectionTitle}"/>
+                                    <TextBlock Text="&#xE72E;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13"/>
+                                </Grid>
+                                <c:SettingSlider Label="SENSIBILIDADE DA EMBREAGEM" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
+                                <c:SettingSlider Label="SENSIBILIDADE DO FREIO" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
+                                <c:SettingSlider Label="SENSIBILIDADE DO ACELERADOR" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
+                                <CheckBox Content="PEDAIS COMBINADOS" Margin="0,4,0,24" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Chega com o Modo Compatibilidade Total (Fase 8)"/>
+                                <Button Style="{StaticResource FlatButton}" Content="CALIBRAR PEDAIS" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Assistente de calibração: Fase 9"/>
+                                <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
+                                    <TextBlock Style="{StaticResource Hint}" Text="Sensibilidade dos pedais só no Modo Compatibilidade Total. Pedais combinados no Modo Padrão usam o modo antigo (Driving Force EX) e o jogo perde a embreagem."/>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="40,30,40,40">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="1.1*"/>
+                            </Grid.RowDefinitions>
+                            <Viewbox>
+                                <StackPanel x:Name="PedalMeters" Orientation="Horizontal"/>
+                            </Viewbox>
+                            <c:G27Pedals x:Name="Pedals" Grid.Row="1" Margin="0,24,0,0"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ===== Força ===== -->
+                    <Grid Tag="forca" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <Grid Margin="0,0,0,22">
+                                    <TextBlock Text="Força" Style="{StaticResource SectionTitle}"/>
+                                    <TextBlock Text="&#xE72E;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13"/>
+                                </Grid>
+                                <CheckBox x:Name="FfbEnabled" Content="ATIVAR FORCE FEEDBACK" IsChecked="True" Margin="0,0,0,20"
+                                          ToolTip="Registra (ou remove) o driver de força do G27 Hub. Reabra o jogo depois de mudar."/>
+                                <c:SettingSlider x:Name="GainSlider" Label="INTENSIDADE GLOBAL" Value="100"/>
+                                <c:SettingSlider x:Name="SpringSlider" Label="INTENSIDADE DA MOLA" Value="100"/>
+                                <c:SettingSlider x:Name="DamperSlider" Label="INTENSIDADE DO AMORTECIMENTO" Value="100"/>
+                                <CheckBox x:Name="CenterCheck" Content="FORÇA CENTRAL" Margin="0,4,0,12"
+                                          ToolTip="Mola extra somada ao force feedback do jogo"/>
+                                <c:SettingSlider x:Name="CenterSlider" Label="INTENSIDADE DA FORÇA CENTRAL" Value="20"/>
+                                <CheckBox Content="PERMITIR QUE O JOGO AJUSTE CONFIGURAÇÕES" IsChecked="True" Margin="0,4,0,14" IsEnabled="False"
+                                          ToolTipService.ShowOnDisabled="True" ToolTip="Depende do SDK da Logitech (extra futuro). Hoje o jogo já controla o próprio force feedback."/>
+                                <CheckBox x:Name="InvertCheck" Content="INVERTER FORÇA" Margin="0,0,0,24"
+                                          ToolTip="Use se o volante puxar para o batente em vez de voltar ao centro"/>
+                                <Button Style="{StaticResource AccentButton}" Content="TESTE AUTOMÁTICO DE FORCE FEEDBACK" Click="StartFfbTest_Click" Margin="0,0,0,10"
+                                        ToolTip="Pista 3D de ~27 s: o carro anda sozinho por zebra, lombadas, grama, terra e uma batida. Segure o volante."/>
+                                <Button Style="{StaticResource AccentButton}" Content="DIREÇÃO LIVRE (VOCÊ DIRIGE)" Click="StartFreeDrive_Click" Margin="0,0,0,10"
+                                        ToolTip="Pista infinita: volante para virar, acelerador e freio nos pedais. Lombadas, buracos, cones, terra e zebras. ESC sai."/>
+                                <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreFfb_Click"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,18,0,0" Text="Os ajustes valem na hora, até com o jogo aberto."/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="40,30,40,40">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+                                <StackPanel Margin="0,0,60,0">
+                                    <TextBlock Text="FORÇA ATUAL" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="ForceNow" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,60,0">
+                                    <TextBlock Text="CLIPPING (ÚLTIMOS 10 s)" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="ClipNow" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="JOGO" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="GameName" Text="nenhum" FontSize="20" FontWeight="SemiBold" Margin="0,7,0,0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Viewbox Grid.Row="1" VerticalAlignment="Top">
+                                <Canvas x:Name="ForceGraph" Width="680" Height="280"/>
+                            </Viewbox>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ===== Câmbio ===== -->
+                    <Grid Tag="cambio" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <TextBlock Text="Câmbio" Style="{StaticResource SectionTitle}" Margin="0,0,0,22"/>
+                                <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Shift" Content="H (6 MARCHAS + RÉ)" IsChecked="True" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Shift" Content="SEQUENCIAL" Margin="0,0,0,22"/>
+                                <TextBlock Style="{StaticResource Hint}" Text="No G27, o modo sequencial é ligado empurrando a manopla para baixo e girando o anel. O app só mostra o modo atual."/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="60,40,60,40">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <StackPanel HorizontalAlignment="Center" Margin="0,0,0,24">
+                                <TextBlock Text="MARCHA ATUAL" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="GearText" Text="N" FontSize="40" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource Accent}"/>
+                            </StackPanel>
+                            <c:G27Shifter x:Name="Shifter" Grid.Row="1" VerticalAlignment="Top"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ===== LEDs ===== -->
+                    <Grid Tag="leds" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <TextBlock Text="LEDs de RPM" Style="{StaticResource SectionTitle}" Margin="0,0,0,22"/>
+                                <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Led" Content="PROGRESSIVO" IsChecked="True" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Led" Content="PONTO DE TROCA (PISCA)" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Led" Content="LIMITADOR" Margin="0,0,0,22"/>
+                                <c:SettingSlider Label="LED 1 ACENDE EM (% DA RPM)" Value="75"/>
+                                <c:SettingSlider Label="LED 2" Value="80"/>
+                                <c:SettingSlider Label="LED 3" Value="85"/>
+                                <c:SettingSlider Label="LED 4" Value="90"/>
+                                <c:SettingSlider Label="LED 5" Value="95"/>
+                                <TextBlock Text="FONTE DE TELEMETRIA" Style="{StaticResource SettingLabel}" Margin="0,4,0,6"/>
+                                <Border Style="{StaticResource Dropdown}" Margin="0,0,0,24">
+                                    <Grid>
+                                        <TextBlock Text="Automática (pelo jogo)" FontSize="12"/>
+                                        <TextBlock Text="&#xE70D;" Style="{StaticResource Icon}" FontSize="9" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <Button Style="{StaticResource AccentButton}" Content="TESTAR LEDS" Click="TestLeds_Click"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,18,0,0" Text="Modo, limites e telemetria chegam na Fase 7 (LEDs de RPM nos jogos). O teste já acende os LEDs de verdade."/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="40,40,40,40">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <StackPanel HorizontalAlignment="Center" Margin="0,0,0,30">
+                                <StackPanel x:Name="LedBar" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="LedText" Text="sem telemetria" Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                            </StackPanel>
+                            <c:G27Wheel x:Name="LedWheel" Grid.Row="1" MaxWidth="380"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ===== Atribuições ===== -->
+                    <Grid Tag="atribuicoes" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <TextBlock Text="Atribuições" Style="{StaticResource SectionTitle}" Margin="0,0,0,18"/>
+                                <StackPanel x:Name="AssignList" Margin="-22,0,-22,22"/>
+                                <TextBlock x:Name="AssignTitle" Text="BOTÃO 2" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Act" Content="PADRÃO (O JOGO DECIDE)" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Act" Content="TECLA" IsChecked="True" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Act" Content="COMBINAÇÃO DE TECLAS" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Act" Content="MACRO" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Act" Content="DESATIVAR" Margin="0,0,0,16"/>
+                                <Border Style="{StaticResource Dropdown}" BorderBrush="{StaticResource Accent}" BorderThickness="1">
+                                    <TextBlock Text="Espaço" FontSize="12"/>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="40,30,40,40">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <c:G27Wheel x:Name="AssignWheel" ShowHotspots="True" MaxWidth="520"/>
+                            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,16,0,0">
+                                <TextBlock x:Name="LastButton" Text="Aperte um botão no volante" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,4,0,0"
+                                           Text="As ações (tecla, combinação, macro) passam a funcionar na Fase 5."/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ===== Teste e calibração ===== -->
+                    <Grid Tag="teste" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer Style="{StaticResource PanelScroll}">
+                            <StackPanel Margin="22,20,22,22">
+                                <TextBlock Text="Teste e calibração" Style="{StaticResource SectionTitle}" Margin="0,0,0,18"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,22"
+                                           Text="Tudo ao vivo: gire o volante, pise nos pedais, troque as marchas e aperte os botões."/>
+                                <Button Style="{StaticResource FlatButton}" Content="PULSO DE FORÇA DE TESTE" Margin="0,0,0,10" Click="Pulse_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="REAPLICAR MODO NATIVO E ROTAÇÃO" Margin="0,0,0,10" Click="Reapply_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="INICIAR ASSISTENTE DE CALIBRAÇÃO" IsEnabled="False"
+                                        ToolTipService.ShowOnDisabled="True" ToolTip="Fase 9"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Border Background="{StaticResource Panel}" CornerRadius="6" Margin="0,0,8,8" Padding="18">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="VOLANTE" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="TestAngle" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <Grid x:Name="TestTrack" Height="10" Margin="0,14,0,6">
+                                            <Rectangle Fill="#262626" RadiusX="5" RadiusY="5"/>
+                                            <Rectangle Width="2" Fill="#555" HorizontalAlignment="Center"/>
+                                            <Rectangle x:Name="TestMarker" Fill="{StaticResource Accent}" Width="10" RadiusX="5" RadiusY="5" HorizontalAlignment="Left"/>
+                                        </Grid>
+                                        <Grid>
+                                            <TextBlock x:Name="TestMin" Text="-450°" Style="{StaticResource Hint}"/>
+                                            <TextBlock x:Name="TestRaw" Text="" Style="{StaticResource Hint}" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="TestMax" Text="+450°" Style="{StaticResource Hint}" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Grid.Column="1" Background="{StaticResource Panel}" CornerRadius="6" Margin="8,0,0,8" Padding="18">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="PEDAIS" Style="{StaticResource SettingLabel}"/>
+                                    <Viewbox Margin="0,10,0,0">
+                                        <StackPanel x:Name="TestMeters" Orientation="Horizontal"/>
+                                    </Viewbox>
+                                </DockPanel>
+                            </Border>
+                            <Border Grid.Row="1" Background="{StaticResource Panel}" CornerRadius="6" Margin="0,8,8,0" Padding="18">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="CÂMBIO" Style="{StaticResource SettingLabel}"/>
+                                    <c:G27Shifter x:Name="TestShifter" Margin="0,10,0,0"/>
+                                </DockPanel>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource Panel}" CornerRadius="6" Margin="8,8,0,0" Padding="18">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="BOTÕES E DIRECIONAL" Style="{StaticResource SettingLabel}"/>
+                                    <WrapPanel x:Name="ButtonGrid" Margin="0,12,0,0"/>
+                                </DockPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <!-- ⓘ no canto inferior direito -->
+                <Button Grid.Column="1" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,14,14"
+                        ToolTip="Sobre esta tela">
+                    <TextBlock Text="&#xE946;" Style="{StaticResource Icon}" FontSize="17" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- ===================== teste de force feedback (minijogo) ===================== -->
+        <Grid x:Name="FfbTestOverlay" Grid.Row="1" Background="Black" Visibility="Collapsed">
+            <c:RoadTest x:Name="Road"/>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24" Width="230">
+                <Border Background="#B0000000" CornerRadius="6" Padding="16,12">
+                    <StackPanel>
+                        <TextBlock Text="FORÇA NO VOLANTE" Style="{StaticResource SettingLabel}"/>
+                        <TextBlock x:Name="RoadForce" Text="0%" FontSize="28" FontWeight="SemiBold"/>
+                        <Grid Height="8" Margin="0,6,0,10">
+                            <Rectangle Fill="#333" RadiusX="4" RadiusY="4"/>
+                            <Rectangle Width="2" Fill="#777" HorizontalAlignment="Center"/>
+                            <Rectangle x:Name="RoadForceBar" Fill="{StaticResource Accent}" RadiusX="4" RadiusY="4" HorizontalAlignment="Left" Width="0"/>
+                        </Grid>
+                        <TextBlock Text="VOLANTE" Style="{StaticResource SettingLabel}"/>
+                        <TextBlock x:Name="RoadAngle" Text="0°" FontSize="20" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Button Style="{StaticResource AccentButton}" Content="PARAR (ESC)" Click="StopFfbTest_Click" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ===================== console de diagnóstico (seção 6) ===================== -->
+        <Border x:Name="ConsolePanel" Grid.Row="1" Height="300" VerticalAlignment="Bottom" Background="#0A0A0A"
+                BorderBrush="#2A2A2A" BorderThickness="0,1,0,0" Visibility="Collapsed">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="ConsoleShift"/>
+            </Border.RenderTransform>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="44"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid Margin="16,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="CONSOLE DE DIAGNÓSTICO" Style="{StaticResource SettingLabel}" Foreground="White" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                        <ToggleButton x:Name="ChipInfo" Style="{StaticResource Chip}" Content="INFO" Click="ConsoleFilter_Changed"/>
+                        <ToggleButton x:Name="ChipOk" Style="{StaticResource Chip}" Content="OK" Foreground="{StaticResource Ok}" Click="ConsoleFilter_Changed"/>
+                        <ToggleButton x:Name="ChipAviso" Style="{StaticResource Chip}" Content="AVISO" Foreground="{StaticResource Warn}" Click="ConsoleFilter_Changed"/>
+                        <ToggleButton x:Name="ChipErro" Style="{StaticResource Chip}" Content="ERRO" Foreground="{StaticResource Error}" Click="ConsoleFilter_Changed"/>
+                        <Border Style="{StaticResource Dropdown}" Padding="9,4" Margin="8,0,8,0" Background="#161616" MouseLeftButtonUp="Origin_Click"
+                                ToolTip="Clique para trocar a origem">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="OriginText" Text="Todas as origens" FontSize="11.5" Foreground="{StaticResource TextDim}"/>
+                                <TextBlock Text="&#xE70D;" Style="{StaticResource Icon}" FontSize="8" Foreground="{StaticResource TextDim}" Margin="8,1,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Dropdown}" Padding="9,3" Width="190" Background="#161616" Cursor="IBeam">
+                            <DockPanel>
+                                <TextBlock Text="&#xE721;" Style="{StaticResource Icon}" FontSize="11" Foreground="{StaticResource TextFaint}" Margin="0,0,8,0"/>
+                                <TextBox x:Name="ConsoleSearch" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0"
+                                         FontSize="11.5" TextChanged="ConsoleFilter_Changed"/>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <CheckBox x:Name="VerboseCheck" Content="DETALHADO" VerticalAlignment="Center" Margin="0,0,10,0" Click="Verbose_Click"/>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Pausar / continuar" Click="ConsolePause_Click"><TextBlock x:Name="PauseIcon" Text="&#xE769;" Style="{StaticResource Icon}" FontSize="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Limpar" Click="ConsoleClear_Click"><TextBlock Text="&#xE74D;" Style="{StaticResource Icon}" FontSize="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Copiar" Click="ConsoleCopy_Click"><TextBlock Text="&#xE8C8;" Style="{StaticResource Icon}" FontSize="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Exportar .txt" Click="ConsoleExport_Click"><TextBlock Text="&#xE74E;" Style="{StaticResource Icon}" FontSize="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button>
+                        <Button Style="{StaticResource IconButton}" ToolTip="Fechar (Ctrl+Shift+L)" Click="ConsoleToggle_Click"><TextBlock Text="&#xE8BB;" Style="{StaticResource Icon}" FontSize="11" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox x:Name="ConsoleList" Margin="16,0,8,10" Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" VirtualizingPanel.IsVirtualizing="True">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock x:Name="T" Text="{Binding}" FontFamily="{StaticResource Mono}" FontSize="12" Margin="0,1" Foreground="#B0B0B0" TextWrapping="Wrap"/>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Nivel}" Value="OK"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Ok}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding Nivel}" Value="AVISO"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Warn}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding Nivel}" Value="ERRO"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Error}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding Nivel}" Value="DEBUG"><Setter TargetName="T" Property="Foreground" Value="#6E6E6E"/></DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border Grid.Column="1" BorderBrush="#1E1E1E" BorderThickness="1,0,0,0" Padding="16,0,16,10">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                                <TextBlock Text="TESTES RÁPIDOS" Style="{StaticResource SettingLabel}" VerticalAlignment="Center"/>
+                                <Button Style="{StaticResource LinkButton}" Content="RODAR TODOS" HorizontalAlignment="Right" Click="QuickTests_Click"/>
+                            </Grid>
+                            <StackPanel x:Name="QuickTests"/>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ===================== notificação (5.7) ===================== -->
+        <Border x:Name="Toast" Grid.Row="1" Width="390" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24"
+                Background="#1F1F1F" BorderBrush="#323232" BorderThickness="1" CornerRadius="8" Padding="16,14" Visibility="Collapsed">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="ToastShift"/>
+            </Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.6"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="40" Height="40" CornerRadius="6" Background="{StaticResource AccentDim}" VerticalAlignment="Top" Margin="0,2,14,0">
+                    <TextBlock x:Name="ToastIcon" Text="FH5" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Grid.Column="1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="ToastMark" Text="&#xE73E;" Style="{StaticResource Icon}" FontSize="12" Foreground="{StaticResource Ok}" Margin="0,0,7,0"/>
+                        <TextBlock x:Name="ToastTitle" Text="Forza Horizon 5" FontSize="13.5" FontWeight="Bold"/>
+                    </StackPanel>
+                    <TextBlock x:Name="ToastBody" Style="{StaticResource Hint}" Foreground="#CFCFCF" Margin="0,4,0,10"
+                               Text="Compatível com o G27 no Modo Padrão. Perfil aplicado: 900°."/>
+                    <StackPanel x:Name="ToastActions" Orientation="Horizontal"/>
+                </StackPanel>
+                <Button Grid.Column="2" Style="{StaticResource IconButton}" Width="24" Height="24" VerticalAlignment="Top" Margin="4,-4,-6,0" Click="ToastClose_Click">
+                    <TextBlock Text="&#xE8BB;" Style="{StaticResource Icon}" FontSize="9" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

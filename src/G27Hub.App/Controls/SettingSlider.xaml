@@ -1,0 +1,24 @@
+<UserControl x:Class="G27Hub.App.Controls.SettingSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Self" Margin="0,0,0,16">
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
+    <!-- RÓTULO em cima; slider fino com o valor à direita (seção 5.1) -->
+    <StackPanel>
+        <TextBlock Text="{Binding Label, ElementName=Self}" Style="{StaticResource SettingLabel}" Margin="0,0,0,2"/>
+        <Grid>
+            <Slider Minimum="{Binding Minimum, ElementName=Self}" Maximum="{Binding Maximum, ElementName=Self}"
+                    Value="{Binding Value, ElementName=Self, Mode=TwoWay}" Margin="0,0,42,0"/>
+            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5"
+                       Text="{Binding Value, ElementName=Self, StringFormat=0}"/>
+        </Grid>
+    </StackPanel>
+</UserControl>

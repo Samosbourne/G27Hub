@@ -43,6 +43,6 @@ LONG effects_mix_force(Effect effects[MAX_EFFECTS], LONGLONG nowQpc, LONGLONG fr
 /* Sums the contributions of the active conditions (spring/damper/inertia/friction), -10000..10000.
    pos/velN/accN are the wheel's current normalized metrics (-10000..10000). */
 LONG effects_mix_cond(Effect effects[MAX_EFFECTS], LONGLONG nowQpc, LONGLONG freq,
-                       LONG pos, LONG velN, LONG accN);
+                       LONG pos, LONG velN, LONG accN, const LONG condGain[4]);
 
 #endif /* EFFECTS_H */
