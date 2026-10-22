@@ -484,3 +484,8 @@ $RECYCLE.BIN/
 # instalador (gerado por installer/build.ps1)
 installer/publish/
 installer/out/
+
+# Arquivos de trabalho que ficam só no PC (plano, instruções do Claude, material de design)
+PLANO_G27HUB.md
+CLAUDE.md
+docs/design/

@@ -119,7 +119,7 @@ dotnet test
 .\installer\build.ps1    # installer / instalador (Inno Setup 6)
 ```
 
-Docs (Portuguese): `PLANO_G27HUB.md` (plan), `docs/protocolo-g27.md` (G27 HID protocol), `docs/testes/` (test scripts per phase).
+Docs (Portuguese): `docs/protocolo-g27.md` (G27 HID protocol), `docs/testes/` (test scripts per phase).
 
 ## Credits / Créditos
 - **gcampa/g27-ffb-driverless** (MIT): base of the DirectInput effect driver in `src/native/g27ffb` (see `LICENSE-gcampa.txt`).
