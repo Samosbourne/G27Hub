@@ -82,6 +82,13 @@
                     <Ellipse Width="6" Height="6" Fill="{StaticResource Ok}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                     <TextBlock x:Name="HeaderGameText" FontSize="11.5" Foreground="{StaticResource TextDim}" VerticalAlignment="Center"/>
                 </StackPanel>
+                <Border x:Name="CompatBadge" VerticalAlignment="Center" Margin="14,2,0,0" Padding="9,3" CornerRadius="10" Background="#241212" BorderBrush="#6E2A2A" BorderThickness="1" Visibility="Collapsed"
+                        ToolTip="Os jogos veem o &quot;vJoy Device&quot; (volante virtual), não o G27. Volte ao Modo Padrão na engrenagem do card do G27.">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6" Height="6" Fill="#E05252" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="COMPATIBILIDADE TOTAL" FontSize="10.5" FontWeight="SemiBold" Foreground="#E07A7A" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -149,8 +156,9 @@
                         <TextBlock Text="CONFIGURAÇÕES DO G27" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
                         <TextBlock x:Name="DeviceInfo" Style="{StaticResource Hint}" Foreground="#D8D8D8" Margin="0,0,0,14"/>
                         <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,8"/>
-                        <RadioButton GroupName="Mode" Content="PADRÃO (O JOGO VÊ O G27)" IsChecked="True" Margin="0,0,0,8"/>
-                        <RadioButton GroupName="Mode" Content="COMPATIBILIDADE TOTAL (FASE 8)" IsEnabled="False" Margin="0,0,0,16"/>
+                        <RadioButton x:Name="ModeStandard" GroupName="Mode" Content="PADRÃO (O JOGO VÊ O G27)" IsChecked="True" Margin="0,0,0,8" Click="Mode_Click"/>
+                        <RadioButton x:Name="ModeCompat" GroupName="Mode" Content="COMPATIBILIDADE TOTAL (O JOGO VÊ UM VOLANTE VIRTUAL)" Margin="0,0,0,16" Click="Mode_Click"
+                                     ToolTip="Para jogos sem suporte ao G27. Esconde o G27 dos jogos e cria o &quot;vJoy Device&quot; com sensibilidade e pedais combinados."/>
                         <Button Style="{StaticResource FlatButton}" Content="TESTAR LEDS" Margin="0,0,0,8" Click="TestLeds_Click"/>
                         <Button Style="{StaticResource FlatButton}" Content="REAPLICAR MODO NATIVO E ROTAÇÃO" Margin="0,0,0,8" Click="Reapply_Click"/>
                         <Button Style="{StaticResource FlatButton}" Content="CALIBRAÇÃO (FASE 9)" IsEnabled="False"/>
@@ -167,6 +175,9 @@
                         <CheckBox x:Name="DetectorCheck" Content="DETECTOR INTELIGENTE DE JOGOS (AVISOS DE COMPATIBILIDADE AO ABRIR UM JOGO)" Margin="0,0,0,10" Click="DetectorCheck_Click"
                                   ToolTip="Ao abrir um jogo conhecido: compatibilidade, modo recomendado, controle de Xbox, Steam Input, rotação sugerida; ao fechar, pergunta se funcionou. Desligado de fábrica."/>
                         <CheckBox x:Name="LockCheckSettings" Content="PERFIL PERSISTENTE: TRAVAR O PERFIL ATUAL" Click="LockToggle_Click"/>
+                        <TextBlock Text="MODO COMPATIBILIDADE TOTAL (OPCIONAL)" Style="{StaticResource SettingLabel}" Margin="0,20,0,8"/>
+                        <TextBlock x:Name="CompatStatusText" Style="{StaticResource Hint}"/>
+                        <Button x:Name="CompatButton" Style="{StaticResource FlatButton}" Margin="0,10,0,0" Click="Compat_Click"/>
                     </StackPanel>
                 </Border>
             </Popup>
@@ -297,8 +308,8 @@
                                 <CheckBox x:Name="UseOwnVolante" Content="USAR CONFIGURAÇÕES ESPECIAIS DO VOLANTE NESTE PERFIL" Margin="0,0,0,8" Click="UseOwn_Click" Visibility="Collapsed"/>
                                 <TextBlock x:Name="InheritHintVolante" Style="{StaticResource Hint}" Margin="0,0,0,18" Visibility="Collapsed"
                                            Text="Este perfil usa as configurações do Desktop: Padrão. Mexer aqui muda o Desktop."/>
-                                <c:SettingSlider Label="SENSIBILIDADE" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True"
-                                                 ToolTip="Disponível só no Modo Compatibilidade Total (o jogo veria um vJoy em vez do G27)."/>
+                                <c:SettingSlider x:Name="SteerSensSlider" Label="SENSIBILIDADE" Value="50" ToolTipService.ShowOnDisabled="True"
+                                                 ToolTip="Só no Modo Compatibilidade Total. 50 = linear; menos = mais suave no centro; mais = mais rápido no centro."/>
                                 <c:SettingSlider x:Name="RangeSlider" Label="LIMITES OPERACIONAIS (ÂNGULO)" Minimum="40" Maximum="900" Value="900"/>
                                 <c:SettingSlider x:Name="AutocenterSlider" Label="CENTRALIZAÇÃO DA FORÇA DA MOLA" Value="20"/>
                                 <CheckBox x:Name="AutocenterCheck" Content="MOLA CENTRALIZADORA PARA JOGOS SEM FEEDBACK DE FORÇA" Margin="0,4,0,24"
@@ -307,7 +318,7 @@
                                 <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreWheel_Click"/>
                                 <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
                                     <TextBlock Style="{StaticResource Hint}">
-                                        <Run Text="Modo Padrão" Foreground="White" FontWeight="SemiBold"/><Run Text=": o jogo vê o G27 de verdade. A sensibilidade só existe no Modo Compatibilidade Total."/>
+                                        <Run Text="Modo Padrão" Foreground="White" FontWeight="SemiBold"/><Run x:Name="VolanteModeHint" Text=": o jogo vê o G27 de verdade. A sensibilidade só existe no Modo Compatibilidade Total."/>
                                     </TextBlock>
                                 </Border>
                             </StackPanel>
@@ -336,16 +347,17 @@
                                     <TextBlock Text="Pedais" Style="{StaticResource SectionTitle}"/>
                                     <TextBlock x:Name="LockPedais" Text="&#xE785;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13" Cursor="Hand" MouseLeftButtonUp="LockToggle_Click" ToolTip="Travar este perfil (sem troca automática de perfil)"/>
                                 </Grid>
-                                <c:SettingSlider Label="SENSIBILIDADE DA EMBREAGEM" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
-                                <c:SettingSlider Label="SENSIBILIDADE DO FREIO" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
-                                <c:SettingSlider Label="SENSIBILIDADE DO ACELERADOR" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
-                                <CheckBox Content="PEDAIS COMBINADOS" Margin="0,4,0,24" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Chega com o Modo Compatibilidade Total (Fase 8)"/>
+                                <c:SettingSlider x:Name="ClutchSensSlider" Label="SENSIBILIDADE DA EMBREAGEM" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <c:SettingSlider x:Name="BrakeSensSlider" Label="SENSIBILIDADE DO FREIO" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <c:SettingSlider x:Name="ThrottleSensSlider" Label="SENSIBILIDADE DO ACELERADOR" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <TextBlock Text="PEDAIS COMBINADOS" Style="{StaticResource SettingLabel}" Margin="0,4,0,4"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,24" Text="No Modo Compatibilidade Total o volante virtual já traz os dois jeitos: pedais separados (eixos Y, Z e Rx) e combinados, acelerador menos freio (eixo Ry). Escolha no jogo."/>
                                 <Button Style="{StaticResource FlatButton}" Content="CALIBRAR PEDAIS" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Assistente de calibração: Fase 9"/>
                                 <TextBlock Text="PEDAL COMO TECLA" Style="{StaticResource SettingLabel}" Margin="0,24,0,4"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12" Text="Ex.: embreagem como freio de mão em jogos de rally. Vale para o perfil ativo."/>
                                 <StackPanel x:Name="PedalKeysPanel"/>
                                 <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
-                                    <TextBlock Style="{StaticResource Hint}" Text="Sensibilidade dos pedais só no Modo Compatibilidade Total. Pedais combinados no Modo Padrão usam o modo antigo (Driving Force EX) e o jogo perde a embreagem."/>
+                                    <TextBlock x:Name="PedaisModeHint" Style="{StaticResource Hint}" Text="Sensibilidade dos pedais só no Modo Compatibilidade Total. Pedais combinados no Modo Padrão usam o modo antigo (Driving Force EX) e o jogo perde a embreagem."/>
                                 </Border>
                             </StackPanel>
                         </ScrollViewer>
@@ -753,5 +765,24 @@
                 </Button>
             </Grid>
         </Border>
+
+        <!-- borda vermelha discreta: Modo Compatibilidade Total ligado -->
+        <Border x:Name="CompatFrame" Grid.RowSpan="2" BorderBrush="#A63C3C" BorderThickness="2" IsHitTestVisible="False" Visibility="Collapsed"/>
+
+        <!-- ===================== instalando / desinstalando a Compatibilidade Total ===================== -->
+        <Grid x:Name="CompatOverlay" Grid.RowSpan="2" Background="#D8000000" Visibility="Collapsed">
+            <Border Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="28,24">
+                <StackPanel>
+                    <TextBlock x:Name="CompatTitle" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="CompatStepText" Style="{StaticResource Hint}" Margin="0,14,0,10"/>
+                    <Grid>
+                        <Border Height="6" CornerRadius="3" Background="#2A2A2A"/>
+                        <Border x:Name="CompatBar" Height="6" CornerRadius="3" Background="{StaticResource Accent}" HorizontalAlignment="Left" Width="0"/>
+                    </Grid>
+                    <TextBlock x:Name="CompatPercent" Text="0%" Style="{StaticResource Hint}" HorizontalAlignment="Right" Margin="0,8,0,0"/>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0" Text="Não desligue o PC nem o volante. Leva cerca de 1 minuto."/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

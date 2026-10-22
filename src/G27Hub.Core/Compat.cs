@@ -115,7 +115,7 @@ public static class Preflight
         var list = new List<Advice>();
         var t = game.Name;
 
-        // 1–2. status na base × modo atual (o Modo Compatibilidade Total chega na Fase 8)
+        // 1–2. status na base × modo atual
         switch (game.Status)
         {
             case "nativo" or "directinput" when ctx.CompatModeOn:
@@ -131,7 +131,7 @@ public static class Preflight
                 list.Add(Advice.Ok(t, $"Aceita o G27 como volante DirectInput: configure os controles uma vez dentro do jogo ({ConfidenceText(game.Confidence)})."));
                 break;
             case "precisa-compat-total" when !ctx.CompatModeOn:
-                list.Add(Advice.Tip(t, "Este jogo não tem suporte nativo ao G27. Recomendado: o Modo Compatibilidade Total (chega na Fase 8 do app; vai pedir reiniciar o PC)."));
+                list.Add(Advice.Tip(t, "Este jogo não tem suporte nativo ao G27. Recomendado: ligar o Modo Compatibilidade Total (na primeira vez instala os drivers e pede para reiniciar o PC)."));
                 break;
             case "limitado":
                 list.Add(Advice.Warn(t, "Suporte a volante limitado neste jogo. O force feedback pode não funcionar em nenhum modo."));

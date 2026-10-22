@@ -4,6 +4,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks> <!-- VJoyFfb: COM da g27ffb.dll e estruturas do vJoy -->
   </PropertyGroup>
 
   <ItemGroup>

@@ -430,11 +430,14 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 - [ ] (F) Rotação automática por carro: não feito. BeamNG e AC já fazem trava virtual pelo FFB; mudar a rotação no meio do jogo tira a direção do 1:1.
 
 ### Fase 8 — Modo Compatibilidade Total (opcional, desligado de fábrica)
-- [ ] Gerenciador: detectar/instalar/desinstalar vJoy e HidHide (instaladores oficiais), ponto de restauração, reinício.
-- [ ] Volante virtual (eixos, 25+ botões, POV, FFB), HidHide escondendo o G27 e liberando o app.
-- [ ] Pipeline com curvas/sensibilidade/pedais combinados (≥ 500 Hz) e FFB de volta ao G27.
-- [ ] Seletor por perfil; avisos da seção 4.2.
-- [ ] (F) Mapeamento por eixo (sensibilidade, zona morta, faixa) e inverter eixos.
+> Dividida em 8a (instalar/desinstalar), 8b (volante virtual + HidHide) e 8c (FFB de volta). Decisão do John (22/10/2026):
+> o app funciona normal e só instala os drivers quando ele clica em ativar.
+- [x] 8a: gerenciador: detectar/instalar/desinstalar vJoy 2.2.2.0 e HidHide 1.5.230 (instaladores oficiais fixados por SHA-256 + assinatura), ponto de restauração, reinício.
+- [x] 8b: volante virtual (vJoy 1: X volante, Y/Z/Rx pedais, Ry combinados, 24 botões, POV contínuo, FFB habilitado), HidHide escondendo o G27 e liberando o app; liga/desliga no card do G27 com borda vermelha + selo (pedido do John). Global (não por perfil, por enquanto); desligado ao fechar o app.
+- [x] Pipeline com curvas/sensibilidade/pedais combinados (a cada relatório do G27) e FFB de volta ao G27 (8c: pacotes PID do vJoy → IDirectInputEffectDriver da g27ffb.dll carregada no app → mesmo motor do Modo Padrão).
+- [x] Avisos da seção 4.2 (confirmação ao ativar, selo/borda); detector recomenda voltar ao Padrão em jogo nativo, com botão.
+- [ ] Seletor por perfil: não feito (o jogo enumera os dispositivos antes do app perceber que ele abriu; troca manual).
+- [~] (F) Mapeamento por eixo: sensibilidade feita; zona morta/faixa/inverter ficam com as opções do próprio jogo.
 
 **Aceite:** num jogo de teste funciona com sensibilidade e FFB; desativar devolve tudo ao normal após reiniciar; o detector recomenda desligar ao abrir um jogo `nativo`.
 

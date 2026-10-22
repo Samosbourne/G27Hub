@@ -18,6 +18,12 @@ public sealed class WheelSettings
     public bool Invert { get; set; }
     public bool AllowGame { get; set; } = true;
 
+    // Compatibilidade Total (Fase 8b): curvas aplicadas no volante virtual; 50 = linear
+    public int SteerSensitivity { get; set; } = 50;
+    public int ThrottleSensitivity { get; set; } = 50;
+    public int BrakeSensitivity { get; set; } = 50;
+    public int ClutchSensitivity { get; set; } = 50;
+
     public WheelSettings Clone() => (WheelSettings)MemberwiseClone();
 }
 
@@ -65,6 +71,8 @@ public sealed class AppConfig
     public bool DetectorOn { get; set; }
     public int[] RotationSteps { get; set; } = [180, 270, 540, 900];
     public LedSettings Leds { get; set; } = new();
+    /// <summary>Compatibilidade Total ligada (G27 escondido, jogos veem o vJoy). Desligada de fábrica; só o usuário liga.</summary>
+    public bool CompatOn { get; set; }
     public List<Profile> Profiles { get; set; } = [];
 
     // legado da Fase 4, só lido para migrar

@@ -49,6 +49,9 @@ static int Run(string[] a)
         case "monitor":
             return Monitor();
 
+        case "spin" when a.Length > 1 && double.TryParse(a[1], out var target):
+            return WithDevice(d => Spin(d, target, a.Skip(2).Select(double.Parse).ToArray()));
+
         case "ffb" when a.Length > 1:
             return Ffb(a[1..]);
 
@@ -86,6 +89,35 @@ static int Run(string[] a)
                 """);
             return a.Length == 0 ? 0 : 2;
     }
+}
+
+/// <summary>Leva o volante a um ângulo com o WheelSpinner por 3 s e mostra o caminho (ajuste: spin &lt;graus&gt; [kp kd max min]).</summary>
+static void Spin(G27Device d, double target, double[] gains)
+{
+    var s = new WheelSpinner();
+    if (gains.Length > 0) s.Kp = gains[0];
+    if (gains.Length > 1) s.Kd = gains[1];
+    if (gains.Length > 2) s.MaxForce = gains[2];
+    if (gains.Length > 3) s.MinPush = gains[3];
+    d.SetAutocenter(0);
+    Thread.Sleep(100);
+    var sw = System.Diagnostics.Stopwatch.StartNew();
+    double last = 0, maxOver = 0, start = d.State?.Angle ?? 0;
+    int lastForce = int.MinValue;
+    long nextPrint = 0;
+    while (sw.ElapsedMilliseconds < 3000)
+    {
+        var t = sw.Elapsed.TotalSeconds;
+        var angle = d.State?.Angle ?? 0;
+        var f = s.Step(angle, target, t - last);
+        last = t;
+        if (f != lastForce) { d.SetForce(f); lastForce = f; }
+        if (Math.Sign(target - start) != Math.Sign(target - angle)) maxOver = Math.Max(maxOver, Math.Abs(angle - target));
+        if (sw.ElapsedMilliseconds >= nextPrint) { Console.WriteLine($"{sw.ElapsedMilliseconds,5} ms  ângulo {angle,7:0.0}°  força {f,4}%"); nextPrint += 100; }
+        Thread.Sleep(1);
+    }
+    d.SetForce(0);
+    Console.WriteLine($"de {start:0.0}° até {target:0.0}°: final {d.State?.Angle:0.0}°, passou do alvo {maxOver:0.0}°");
 }
 
 static int WithDevice(Action<G27Device> action)

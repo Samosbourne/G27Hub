@@ -73,7 +73,8 @@ public partial class MainWindow : Window
         VerboseCheck.IsChecked = AppLog.Verbose;
 
         LoadSettingsIntoUi();
-        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, MinForceSlider, SpringSlider, DamperSlider, CenterSlider })
+        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, MinForceSlider, SpringSlider, DamperSlider, CenterSlider,
+                                  SteerSensSlider, ClutchSensSlider, BrakeSensSlider, ThrottleSensSlider })
             s.ValueChanged += _ => SettingChanged();
         foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck, AllowGameCheck })
             c.Click += (_, _) => SettingChanged();
@@ -96,6 +97,8 @@ public partial class MainWindow : Window
         StartProfileWatcher();
         StartAssignments();
         StartLeds();
+        StartCompat();
+        StartSpin();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
         CompositionTarget.Rendering += OnFrame;
@@ -131,7 +134,7 @@ public partial class MainWindow : Window
 
     void UpdateDeviceStatus() => DeviceStatus.Text =
         $"{(_dev.IsNative ? "Modo nativo" : "Modo compatível (C294)")} · {_dev.Range}° · " +
-        $"{(FfbRegistration.IsRegistered() ? "Force feedback ativo" : "Force feedback desligado")} · Modo Padrão";
+        $"{(FfbRegistration.IsRegistered() ? "Force feedback ativo" : "Force feedback desligado")} · {(_config.CompatOn ? "Compatibilidade Total (vJoy)" : "Modo Padrão")}";
 
     // ================= quadro a quadro (60 fps) =================
 
@@ -299,6 +302,10 @@ public partial class MainWindow : Window
         CenterCheck.IsChecked = w.CenterSpring > 0;
         CenterSlider.Value = w.CenterSpring > 0 ? w.CenterSpring : 20;
         InvertCheck.IsChecked = w.Invert;
+        SteerSensSlider.Value = w.SteerSensitivity;
+        ClutchSensSlider.Value = w.ClutchSensitivity;
+        BrakeSensSlider.Value = w.BrakeSensitivity;
+        ThrottleSensSlider.Value = w.ThrottleSensitivity;
         StartWithWindowsCheck.IsChecked = AutoStart.Enabled;
         CloseToTrayCheck.IsChecked = _config.CloseToTray;
         NotificationsCheck.IsChecked = _config.Notifications;
@@ -331,6 +338,10 @@ public partial class MainWindow : Window
         w.CenterSpring = CenterCheck.IsChecked == true ? Math.Max(1, (int)Math.Round(CenterSlider.Value)) : 0;
         w.Invert = InvertCheck.IsChecked == true;
         w.AllowGame = AllowGameCheck.IsChecked == true;
+        w.SteerSensitivity = (int)Math.Round(SteerSensSlider.Value);
+        w.ClutchSensitivity = (int)Math.Round(ClutchSensSlider.Value);
+        w.BrakeSensitivity = (int)Math.Round(BrakeSensSlider.Value);
+        w.ThrottleSensitivity = (int)Math.Round(ThrottleSensSlider.Value);
         _config.Save();
         ApplyWheel(force: false);
     }
@@ -457,7 +468,7 @@ public partial class MainWindow : Window
     void DeviceCard_Click(object sender, MouseButtonEventArgs e) => ShowScreen(WheelScreen);
     void Back_Click(object sender, RoutedEventArgs e) => ShowScreen(_dev.IsConnected ? DevicesScreen : HomeScreen);
     void Nav_Checked(object sender, RoutedEventArgs e) => ShowSection((string)((FrameworkElement)sender).Tag);
-    void AppSettings_Click(object sender, RoutedEventArgs e) => AppSettingsPopup.IsOpen = true;
+    void AppSettings_Click(object sender, RoutedEventArgs e) { UpdateCompatUi(); AppSettingsPopup.IsOpen = true; }
     void StartWithWindows_Click(object sender, RoutedEventArgs e) => AutoStart.Enabled = StartWithWindowsCheck.IsChecked == true;
     void CloseToTray_Click(object sender, RoutedEventArgs e) { _config.CloseToTray = CloseToTrayCheck.IsChecked == true; _config.Save(); }
     void Notifications_Click(object sender, RoutedEventArgs e) { _config.Notifications = NotificationsCheck.IsChecked == true; _config.Save(); }
@@ -489,6 +500,7 @@ public partial class MainWindow : Window
             return;
         }
         CompositionTarget.Rendering -= OnFrame;
+        StopCompatForExit();
         _dev.Dispose();
         base.OnClosing(e);
     }
@@ -885,6 +897,15 @@ public partial class MainWindow : Window
         while (Road.Time < 6) Road.Step(1 / 60.0, 20, throttle: 1);
         Shot("16-direcao-livre");
         FfbTestOverlay.Visibility = Visibility.Collapsed;
+
+        ShowCompatProgress("Instalando os drivers", 5);
+        _compatTimer.Stop();
+        (_compatDone, _compatFrac, _compatShown, _compatCreep) = (2, 0.25, 0.45, false);
+        CompatStep("Criando ponto de restauração do Windows...", creep: false);
+        UpdateLayout();
+        CompatTick(null, EventArgs.Empty);
+        Shot("17-instalando-drivers");
+        CompatOverlay.Visibility = Visibility.Collapsed;
         _dev.Dispose();
     }
 }

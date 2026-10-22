@@ -5,6 +5,7 @@
 #include <dinput.h>
 
 #include <shellapi.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -37,9 +38,12 @@ typedef struct {
     BOOL found;
 } FindCtx;
 
+/* G27 Hub: "g27fftest <teste> vjoy" testa o volante virtual (Compatibilidade Total) em vez do G27 */
+static DWORD g_product = 0xC29B046D;
+
 static WINBOOL CALLBACK find_g27_cb(LPCDIDEVICEINSTANCEW inst, LPVOID ref) {
     FindCtx *ctx = (FindCtx *)ref;
-    if (inst->guidProduct.Data1 == 0xC29B046D) {
+    if (inst->guidProduct.Data1 == g_product) {
         ctx->instance = inst->guidInstance;
         ctx->found = TRUE;
         return DIENUM_STOP;
@@ -92,6 +96,54 @@ static void run_const_test(IDirectInputDevice8W *dev) {
     hr = IDirectInputEffect_Stop(effect);
     print_hr("Stop", hr);
 
+    IDirectInputEffect_Release(effect);
+}
+
+/* G27 Hub: "texture" imita o FFB de um jogo como o BeamNG: atualiza a força constante o mais rápido possível
+   (vibração de 25 Hz, como piso/zebra) por 3 s e mede quantas atualizações por segundo o caminho aguenta. */
+static void run_texture_test(IDirectInputDevice8W *dev) {
+    DWORD axes[1] = {0};
+    LONG dirs[1] = {1};
+    DICONSTANTFORCE cf = {0};
+    DIEFFECT eff;
+    memset(&eff, 0, sizeof(eff));
+    eff.dwSize = sizeof(DIEFFECT);
+    eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
+    eff.dwDuration = INFINITE;
+    eff.dwGain = 10000;
+    eff.dwTriggerButton = DIEB_NOTRIGGER;
+    eff.cAxes = 1;
+    eff.rgdwAxes = axes;
+    eff.rglDirection = dirs;
+    eff.cbTypeSpecificParams = sizeof(cf);
+    eff.lpvTypeSpecificParams = &cf;
+
+    IDirectInputEffect *effect = NULL;
+    HRESULT hr = IDirectInputDevice8_CreateEffect(dev, &GUID_ConstantForce_G27, &eff, &effect, NULL);
+    print_hr("CreateEffect(texture)", hr);
+    if (FAILED(hr) || !effect) return;
+    IDirectInputEffect_Start(effect, 1, 0);
+
+    LARGE_INTEGER f, t0, a, b;
+    QueryPerformanceFrequency(&f);
+    QueryPerformanceCounter(&t0);
+    double worst = 0, total = 0;
+    int calls = 0;
+    for (;;) {
+        QueryPerformanceCounter(&a);
+        double t = (double)(a.QuadPart - t0.QuadPart) / f.QuadPart;
+        if (t > 3.0) break;
+        cf.lMagnitude = (LONG)(4000.0 * sin(2.0 * 3.14159265358979 * 25.0 * t));
+        IDirectInputEffect_SetParameters(effect, &eff, DIEP_TYPESPECIFICPARAMS);
+        QueryPerformanceCounter(&b);
+        double ms = (double)(b.QuadPart - a.QuadPart) * 1000.0 / f.QuadPart;
+        total += ms;
+        if (ms > worst) worst = ms;
+        calls++;
+    }
+    wprintf(L"texture: %d atualizacoes em 3 s = %d por segundo; SetParameters media %.3f ms, pior %.2f ms\n",
+            calls, calls / 3, total / calls, worst);
+    IDirectInputEffect_Stop(effect);
     IDirectInputEffect_Release(effect);
 }
 
@@ -191,6 +243,7 @@ int main(void) {
     int argc = 0;
     LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     const WCHAR *cmd = (argc >= 2) ? argv[1] : L"list";
+    if (argc >= 3 && wcscmp(argv[2], L"vjoy") == 0) g_product = 0xBEAD1234;
 
     HWND hwnd = CreateWindowExW(0, L"STATIC", L"fftest", WS_OVERLAPPEDWINDOW,
                                  0, 0, 100, 100, NULL, NULL, GetModuleHandleW(NULL), NULL);
@@ -274,6 +327,9 @@ int main(void) {
 
     if (doConst) {
         run_const_test(dev);
+    }
+    if (wcscmp(cmd, L"texture") == 0) {
+        run_texture_test(dev);
     }
     if (doSine) {
         run_sine_test(dev);

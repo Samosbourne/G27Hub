@@ -41,6 +41,12 @@ src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G H
                      e manda teclas por SendInput com scan code (Core/Input.cs); pausado com o app em foco.
                      MainWindow.Detector.cs: detector opcional (AppConfig.DetectorOn, desligado de fábrica) usando
                      Core/Compat.cs (CompatDb embutida de data/compat-db.json, UserCompat, Preflight) e Core/GameScanner.cs.
+                     MainWindow.Compat.cs + Core/CompatMode.cs: Compatibilidade Total (Fase 8a): baixa vJoy/HidHide oficiais
+                     (SHA-256 fixo), PowerShell elevado com ponto de restauração antes; desinstalar; pede reinício.
+                     8b: Core/VirtualWheel.cs (HidHide pelo HidHideCLI, sem admin; vJoy pelo vJoyInterface.dll, só o que muda;
+                     curvas de sensibilidade). AppConfig.CompatOn; borda vermelha + selo no topo quando ligado.
+                     8c: Core/VJoyFfb.cs recebe o FFB do vJoy e chama a g27ffb.dll (x64) por COM dentro do app.
+                     Testar sem jogo: g27fftest <const|sine|spring|damper> vjoy.
                      MainWindow.Leds.cs: thread de LEDs (TelemetryHub → RpmLeds → SetLeds sem log, só quando muda),
                      funciona na bandeja; teste e atalho de rotação seguram os LEDs (HoldLeds). Portas UDP só em 127.0.0.1.
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.

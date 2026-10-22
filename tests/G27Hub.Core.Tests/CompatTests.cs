@@ -47,6 +47,16 @@ public class CompatTests
     }
 
     [Fact]
+    public void NativeGameWithCompatOnRecommendsStandard()
+    {
+        var game = new CompatEntry { Name = "Forza", Status = "nativo", SuggestedRange = 900 };
+        var on = Preflight.Check(game, new PreflightContext(true, true, 0, false, 900, CompatModeOn: true));
+        Assert.Contains(on, a => a.Body.Contains("desligar o Compatibilidade Total"));
+        var off = Preflight.Check(new CompatEntry { Name = "X", Status = "precisa-compat-total", SuggestedRange = 900 }, new PreflightContext(true, true, 0, false, 900, CompatModeOn: true));
+        Assert.DoesNotContain(off, a => a.Body.Contains("Recomendado"));
+    }
+
+    [Fact]
     public void NotNativeAndBadVotesWarn()
     {
         var game = new CompatEntry { Name = "Y", Status = "nativo", SuggestedRange = 900 };

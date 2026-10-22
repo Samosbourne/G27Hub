@@ -90,7 +90,7 @@ public partial class MainWindow
     void RunPreflight(CompatEntry game, bool steamRunning)
     {
         var ctx = new PreflightContext(_dev.IsConnected, _dev.IsNative, XboxControllers.Count(), steamRunning, W.Range,
-            ControlsFixed: game.Checklist.Contains("corrigir-controles-beamng") && BeamNgFix.IsApplied());
+            CompatModeOn: _vwheel != null, ControlsFixed: game.Checklist.Contains("corrigir-controles-beamng") && BeamNgFix.IsApplied());
         var advice = Preflight.Check(game, ctx, _userCompat.Games.GetValueOrDefault(game.Id));
         if (ctx.WheelConnected && !ctx.NativeMode) _dev.Reset(); // reaplica o modo nativo
 
@@ -102,6 +102,11 @@ public partial class MainWindow
         var actions = new List<(string, Action?)> { ("OK", null) };
         if (game.Checklist.Contains("corrigir-controles-beamng") && !BeamNgFix.IsApplied())
             actions.Insert(0, ("CORRIGIR CONTROLES", FixBeamNg));
+        // só recomenda: trocar de modo é sempre um clique do usuário
+        if (ctx.CompatModeOn && game.Status is "nativo" or "directinput")
+            actions.Insert(0, ("VOLTAR AO MODO PADRÃO", () => _ = SetCompat(false)));
+        else if (!ctx.CompatModeOn && game.Status == "precisa-compat-total")
+            actions.Insert(0, ("LIGAR COMPATIBILIDADE TOTAL", () => _ = SetCompat(true)));
         actions.Add(("NÃO AVISAR PARA ESTE JOGO", () => Mute(game)));
         ShowToast(Initials(game.Name), kind, game.Name, body, TimeSpan.FromSeconds(20), actions.ToArray());
         if (!IsVisible || WindowState == WindowState.Minimized)

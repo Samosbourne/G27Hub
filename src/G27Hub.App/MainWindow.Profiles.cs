@@ -293,7 +293,7 @@ public partial class MainWindow
 
     void Menu_Click(object sender, RoutedEventArgs e) => MenuPopup.IsOpen = true;
     void MenuProfiles_Click(object sender, RoutedEventArgs e) { MenuPopup.IsOpen = false; Profile_Click(sender, e); }
-    void MenuSettings_Click(object sender, RoutedEventArgs e) { MenuPopup.IsOpen = false; AppSettingsPopup.IsOpen = true; }
+    void MenuSettings_Click(object sender, RoutedEventArgs e) { MenuPopup.IsOpen = false; UpdateCompatUi(); AppSettingsPopup.IsOpen = true; }
     void MenuConsole_Click(object sender, RoutedEventArgs e) { MenuPopup.IsOpen = false; if (ConsolePanel.Visibility != Visibility.Visible) ToggleConsole(animate: true); }
 
     void MenuAbout_Click(object sender, RoutedEventArgs e)
