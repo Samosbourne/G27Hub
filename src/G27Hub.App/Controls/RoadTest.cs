@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App.Controls;
 
@@ -218,7 +219,7 @@ public sealed class RoadTest : Grid
         _offset += _speed * Math.Sin(_yaw) * dt;
         _s += _speed * Math.Cos(_yaw) * dt;
 
-        if (Math.Abs(_offset) > HalfWidth + 24) Crash("MURO! Voltando para a pista…", 100);
+        if (Math.Abs(_offset) > HalfWidth + 24) Crash(T("MURO! Voltando para a pista…"), 100);
     }
 
     void Crash(string text, double impulse)
@@ -250,25 +251,25 @@ public sealed class RoadTest : Grid
                     f.Hit = true;
                     _impulse = 100 * Math.Min(1, Free ? _speed / 15 : 1);
                     _bounce = 0.35;
-                    Flash("LOMBADA!", 1);
+                    Flash(T("LOMBADA!"), 1);
                     break;
                 case "buraco" when Math.Abs(_offset - 0.9 - f.Offset) < 0.7 || Math.Abs(_offset + 0.9 - f.Offset) < 0.7:
                     f.Hit = true;
                     _impulse = (f.Offset < _offset ? 1 : -1) * 85 * Math.Min(1, Free ? _speed / 12 : 1); // puxa para o lado do buraco
                     _bounce = 0.3;
-                    Flash("BURACO!", 1);
+                    Flash(T("BURACO!"), 1);
                     break;
                 case "cone" when Math.Abs(_offset - f.Offset) < 1.3:
                     f.Hit = true;
                     _impulse = 75;
                     _shake = 0.6;
                     _speed *= 0.85;
-                    Flash("ACERTOU UM CONE!", 1);
+                    Flash(T("ACERTOU UM CONE!"), 1);
                     break;
                 case "barreira":
                     f.Hit = true;
                     _s = f.S - 2.2;
-                    Crash("BATIDA!", 100);
+                    Crash(T("BATIDA!"), 100);
                     break;
             }
         }
@@ -344,26 +345,26 @@ public sealed class RoadTest : Grid
         _camera.LookDirection = (pos + forward * 10 + new Vector3D(0, 0.6, 0)) - _camera.Position;
         _camera.UpDirection = new Vector3D(0, 1, 0);
 
-        _label.Text = Time < _eventUntil ? _event : Free ? "DIREÇÃO LIVRE" : DemoLabel;
+        _label.Text = Time < _eventUntil ? _event : Free ? T("DIREÇÃO LIVRE") : DemoLabel;
         _info.Text = Free
-            ? $"{_speed * 3.6:0} km/h · piso: {Floor} · {_s / 1000:0.0} km · acelerador e freio nos pedais"
-            : $"{(_crashed ? 0 : _speed * 3.6):0} km/h · piso: {(_crashed ? "—" : Floor)}";
+            ? T($"{_speed * 3.6:0} km/h · piso: {T(Floor)} · {_s / 1000:0.0} km · acelerador e freio nos pedais")
+            : T($"{(_crashed ? 0 : _speed * 3.6):0} km/h · piso: {(_crashed ? "—" : T(Floor))}");
         _flash.Opacity = _shake * 0.45;
         _progress.Visibility = Free ? Visibility.Collapsed : Visibility.Visible;
         _progress.Width = ActualWidth * Math.Min(Time / Duration, 1);
     }
 
-    string DemoLabel => _crashed ? "BATIDA!" : _s switch
+    string DemoLabel => _crashed ? T("BATIDA!") : _s switch
     {
-        < 80 => "RETA",
-        < 230 => "CURVA À DIREITA — cortando a zebra",
-        < 300 => "LOMBADAS",
-        < 370 => "CURVA À ESQUERDA — abrindo na zebra",
-        < 430 => "SAIU DA PISTA — grama!",
-        < 450 => "VOLTANDO PARA A PISTA",
-        < 520 => "TRECHO DE TERRA",
-        < 580 => "RETA",
-        _ => "CUIDADO COM A BARREIRA…",
+        < 80 => T("RETA"),
+        < 230 => T("CURVA À DIREITA — cortando a zebra"),
+        < 300 => T("LOMBADAS"),
+        < 370 => T("CURVA À ESQUERDA — abrindo na zebra"),
+        < 430 => T("SAIU DA PISTA — grama!"),
+        < 450 => T("VOLTANDO PARA A PISTA"),
+        < 520 => T("TRECHO DE TERRA"),
+        < 580 => T("RETA"),
+        _ => T("CUIDADO COM A BARREIRA…"),
     };
 
     sealed class Meshes

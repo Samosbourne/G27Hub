@@ -442,9 +442,11 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 **Aceite:** num jogo de teste funciona com sensibilidade e FFB; desativar devolve tudo ao normal após reiniciar; o detector recomenda desligar ao abrir um jogo `nativo`.
 
 ### Fase 9 — Assistente de primeira execução + polimento
-- [ ] **Assistente na primeira abertura:** verifica drivers antigos da Logitech, Integridade de Memória, Steam Input, coloca o volante em modo nativo e faz um teste rápido de FFB e LEDs.
-- [ ] Assistente de calibração; instalador (Inno Setup) + desinstalação limpa; README com créditos.
-- [ ] (F) Botão ⓘ com dicas de cada tela; idioma PT/EN.
+- [x] **Assistente na primeira abertura:** verifica drivers antigos da Logitech, Integridade de Memória, Steam Input, coloca o volante em modo nativo e faz um teste rápido de FFB e LEDs.
+- [x] Assistente de calibração dos pedais (calibração do usuário do DirectInput em HKCU: vale para todos os jogos); README com créditos.
+- [x] Instalador (Inno Setup, por usuário, sem admin, .NET embutido, PT/EN) + desinstalação limpa (`--uninstall-cleanup`): installer/build.ps1.
+- [x] (F) Botão ⓘ com dicas de cada tela.
+- [x] (F) Idioma PT/EN: botão do globo no topo; reabre o app no idioma escolhido (log técnico continua em português).
 
 ### Fase 10 — Extras
 Ver seção 10. Somam-se (F): linearização do FFB (LUT), overlay de entradas para stream, painel no celular, vibração extra por telemetria, compatibilidade com o SDK da Logitech, verificar atualizações, perfis numa pasta compartilhada (OneDrive/Drive).

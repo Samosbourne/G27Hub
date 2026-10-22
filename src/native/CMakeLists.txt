@@ -12,7 +12,7 @@ target_link_libraries(g27ffb hid setupapi advapi32)
 
 add_executable(g27fftest fftest/fftest.c)
 target_include_directories(g27fftest PRIVATE g27ffb)
-target_link_libraries(g27fftest dinput8 ole32 user32 shell32)
+target_link_libraries(g27fftest dinput8 dxguid ole32 user32 shell32)
 
 # Plugin de telemetria do ETS2/ATS (C++: os headers do SCS SDK exigem). Só a versão x64 é usada (os jogos são 64 bits).
 add_library(g27scs SHARED g27scs/g27scs.cpp g27scs/g27scs.def)

@@ -14,6 +14,7 @@ using System.Windows.Threading;
 using G27Hub.App.Controls;
 using G27Hub.Core;
 using G27Hub.Logging;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 
@@ -55,6 +56,7 @@ public partial class MainWindow : Window
     public MainWindow(bool connect)
     {
         InitializeComponent();
+        LangUi.Translate(this);
         (Icon, TrayIcon) = MakeIcons();
 
         BuildArc();
@@ -99,6 +101,8 @@ public partial class MainWindow : Window
         StartLeds();
         StartCompat();
         StartSpin();
+        MaybeShowWizard();
+        UpdateCalibStatus();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
         CompositionTarget.Rendering += OnFrame;
@@ -123,18 +127,18 @@ public partial class MainWindow : Window
             ApplyWheel(force: true);
             if (HomeScreen.Visibility == Visibility.Visible) ShowScreen(DevicesScreen);
             UpdateDeviceStatus();
-            ShowToast("G27", "Ok", "G27 conectado", _dev.IsNative ? $"Modo nativo, {_dev.Range}°. Pode abrir o jogo." : "Conectado, mas fora do modo nativo. Use \"Reaplicar\" na aba Teste.");
+            ShowToast("G27", "Ok", T("G27 conectado"), _dev.IsNative ? T($"Modo nativo, {_dev.Range}°. Pode abrir o jogo.") : T("Conectado, mas fora do modo nativo. Use \"Reaplicar\" na aba Teste."));
         }
         else
         {
             ShowScreen(HomeScreen);
-            ShowToast("G27", "Warn", "G27 desconectado", "Ao reconectar, o modo nativo e a rotação voltam sozinhos.");
+            ShowToast("G27", "Warn", T("G27 desconectado"), T("Ao reconectar, o modo nativo e a rotação voltam sozinhos."));
         }
     }
 
     void UpdateDeviceStatus() => DeviceStatus.Text =
-        $"{(_dev.IsNative ? "Modo nativo" : "Modo compatível (C294)")} · {_dev.Range}° · " +
-        $"{(FfbRegistration.IsRegistered() ? "Force feedback ativo" : "Force feedback desligado")} · {(_config.CompatOn ? "Compatibilidade Total (vJoy)" : "Modo Padrão")}";
+        (_dev.IsNative ? T("Modo nativo") : T("Modo compatível (C294)")) + T($" · {_dev.Range}° · ") +
+        (FfbRegistration.IsRegistered() ? T("Force feedback ativo") : T("Force feedback desligado")) + " · " + (_config.CompatOn ? T("Compatibilidade Total (vJoy)") : T("Modo Padrão"));
 
     // ================= quadro a quadro (60 fps) =================
 
@@ -146,6 +150,7 @@ public partial class MainWindow : Window
         if (s == null || !_dev.IsConnected) return;
 
         _shownAngle += ((s.Angle ?? 0) - _shownAngle) * 0.5; // suaviza entre os relatórios do volante
+        UpdateCalibration();
         double[] pedals = [s.Clutch, s.Brake, s.Throttle];
 
         switch (CurrentSection)
@@ -153,7 +158,7 @@ public partial class MainWindow : Window
             case "volante":
                 MainWheel.Angle = _shownAngle;
                 MainWheel.SetPressed(s.Buttons);
-                AngleText.Text = $"{_shownAngle:+0;-0;0}°";
+                AngleText.Text = T($"{_shownAngle:+0;-0;0}°");
                 UpdateArc((int)RangeSlider.Value, _shownAngle);
                 break;
             case "pedais":
@@ -177,12 +182,12 @@ public partial class MainWindow : Window
                 UpdateLedsTab();
                 break;
             case "teste":
-                TestAngle.Text = $"{_shownAngle:+0.0;-0.0;0.0}°";
-                TestMin.Text = $"-{W.Range / 2}°";
-                TestMax.Text = $"+{W.Range / 2}°";
+                TestAngle.Text = T($"{_shownAngle:+0.0;-0.0;0.0}°");
+                TestMin.Text = T($"-{W.Range / 2}°");
+                TestMax.Text = T($"+{W.Range / 2}°");
                 if (s.Axes.TryGetValue("X", out var x))
                 {
-                    TestRaw.Text = $"bruto {x.Value} / {x.Max}";
+                    TestRaw.Text = T($"bruto {x.Value} / {x.Max}");
                     TestMarker.Margin = new Thickness(x.Normalized * Math.Max(TestTrack.ActualWidth - 10, 0), 0, 0, 0);
                 }
                 UpdateMeters(_testMeters, pedals);
@@ -191,10 +196,10 @@ public partial class MainWindow : Window
                 for (int b = 0; b < _buttonDots.Count; b++)
                 {
                     var on = s.Buttons.Contains(b + 1);
-                    _buttonDots[b].Dot.Fill = on ? (Brush)FindResource("Accent") : Draw.Hex("#262626");
+                    _buttonDots[b].Dot.Fill = on ? (Brush)FindResource("Accent") : Draw.Hex("#1B2230");
                     _buttonDots[b].Text.Foreground = on ? Brushes.White : (Brush)FindResource("TextDim");
                 }
-                _hatText.Text = s.Hat < 0 ? "Direcional: solto" : $"Direcional: {new[] { "cima", "cima-direita", "direita", "baixo-direita", "baixo", "baixo-esquerda", "esquerda", "cima-esquerda" }[s.Hat % 8]}";
+                _hatText.Text = s.Hat < 0 ? T("Direcional: solto") : T("Direcional: ") + T(new[] { "cima", "cima-direita", "direita", "baixo-direita", "baixo", "baixo-esquerda", "esquerda", "cima-esquerda" }[s.Hat % 8]);
                 break;
         }
         _prevButtons = ButtonEngine.Pressed(s).ToArray();
@@ -221,8 +226,8 @@ public partial class MainWindow : Window
 
     void StartFfbTest(bool free)
     {
-        if (!_dev.IsConnected) { ShowToast("FFB", "Warn", "G27 não conectado", "Ligue o volante para testar o force feedback."); return; }
-        if (FfbShared.Read() is { AgeMs: < 1000 }) { ShowToast("FFB", "Warn", "Tem um jogo usando o force feedback", "Feche o jogo antes de rodar o teste."); return; }
+        if (!_dev.IsConnected) { ShowToast("FFB", "Warn", T("G27 não conectado"), T("Ligue o volante para testar o force feedback.")); return; }
+        if (FfbShared.Read() is { AgeMs: < 1000 }) { ShowToast("FFB", "Warn", T("Tem um jogo usando o force feedback"), T("Feche o jogo antes de rodar o teste.")); return; }
         _dev.SetAutocenter(0); // a mola do volante brigaria com o teste
         Road.WheelLock = W.Range / 2.0;
         Road.Reset(_dev.State?.Angle ?? 0, free);
@@ -256,11 +261,11 @@ public partial class MainWindow : Window
             catch (Exception ex) { AppLog.Erro("FFB", "Teste de force feedback parou", ex); StopFfbTest(); return; }
             _roadForce = pct;
         }
-        RoadForce.Text = $"{pct:+0;-0;0}%";
+        RoadForce.Text = T($"{pct:+0;-0;0}%");
         var barMax = Math.Max(((FrameworkElement)RoadForceBar.Parent).ActualWidth / 2, 1);
         RoadForceBar.Width = Math.Abs(pct) / 100.0 * barMax;
         RoadForceBar.Margin = new Thickness(pct > 0 ? barMax - RoadForceBar.Width : barMax, 0, 0, 0); // positivo = empurra para a esquerda
-        RoadAngle.Text = $"{angle:+0;-0;0}°";
+        RoadAngle.Text = T($"{angle:+0;-0;0}°");
         if (Road.Finished) StopFfbTest();
     }
 
@@ -277,7 +282,7 @@ public partial class MainWindow : Window
         }
         catch (InvalidOperationException) { } // volante desconectou no meio
         AppLog.Ok("FFB", (Road.Free ? $"Direção livre encerrada após {Road.Distance / 1000:0.0} km" : $"Teste de force feedback {(Road.Finished ? "concluído" : "interrompido")}") +
-                         $": força máxima {_roadMaxForce}%, o volante foi de {_roadMinAngle:+0;-0;0}° a {_roadMaxAngle:+0;-0;0}°");
+                         T($": força máxima {_roadMaxForce}%, o volante foi de {_roadMinAngle:+0;-0;0}° a {_roadMaxAngle:+0;-0;0}°"));
     }
 
     string CurrentSection => Sections.Children.OfType<FrameworkElement>().FirstOrDefault(c => c.Visibility == Visibility.Visible)?.Tag as string ?? "";
@@ -394,7 +399,7 @@ public partial class MainWindow : Window
         }
         else FfbRegistration.Unregister();
         UpdateDeviceStatus();
-        ShowToast("FFB", "Accent", "Force feedback", "Feche e abra o jogo de novo para valer.");
+        ShowToast("FFB", "Accent", T("Force feedback"), T("Feche e abra o jogo de novo para valer."));
     }
 
     void RestoreWheel_Click(object sender, RoutedEventArgs e)
@@ -417,7 +422,7 @@ public partial class MainWindow : Window
 
     public void Reapply()
     {
-        if (!_dev.IsConnected) { ShowToast("G27", "Warn", "G27 não conectado", "Ligue o volante na tomada e no USB."); return; }
+        if (!_dev.IsConnected) { ShowToast("G27", "Warn", T("G27 não conectado"), T("Ligue o volante na tomada e no USB.")); return; }
         if (!_dev.IsNative) { AppLog.Info("MODO", "Reconectando para reenviar o modo nativo"); _dev.Reset(); return; }
         ApplyWheel(force: true);
     }
@@ -543,10 +548,10 @@ public partial class MainWindow : Window
         var active = span * range / 900;
         var current = Math.Clamp(angle / (range / 2.0), -1, 1) * active;
         var accent = (Brush)FindResource("Accent");
-        var off = Draw.Hex("#1F2B35");
+        var off = Draw.Hex("#1B2A3C");
         foreach (var (t, line) in _arc)
             line.Stroke = Math.Abs(t - current) < 1.5 ? Brushes.White : Math.Abs(t) <= active + 0.01 ? accent : off;
-        RangeLabel.Text = $"{range}° LIMITE OPERACIONAL";
+        RangeLabel.Text = T($"{range}° LIMITE OPERACIONAL");
     }
 
     // ================= pedais: medidores segmentados =================
@@ -554,30 +559,37 @@ public partial class MainWindow : Window
     (Rectangle[] Segs, TextBlock Value)[] BuildMeters(Panel host, int segments, double segHeight)
     {
         var result = new List<(Rectangle[], TextBlock)>();
-        foreach (var label in new[] { "EMBREAGEM", "FREIO", "ACELERADOR" })
+        foreach (var label in new[] { T("EMBREAGEM"), T("FREIO"), T("ACELERADOR") })
         {
             var col = new StackPanel { Margin = new Thickness(26, 0, 26, 0) };
             var segs = new Rectangle[segments];
             for (int s = segments - 1; s >= 0; s--)
-                col.Children.Add(segs[s] = new Rectangle { Width = 40, Height = segHeight, Margin = new Thickness(0, 0, 0, 3), Fill = Draw.Hex("#18232C") });
+                col.Children.Add(segs[s] = new Rectangle { Width = 40, Height = segHeight, Margin = new Thickness(0, 0, 0, 3), Fill = PedalOff(result.Count) });
             var value = new TextBlock { Text = "0%", FontSize = 15, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 8, 0, 2) };
             col.Children.Add(value);
-            col.Children.Add(new TextBlock { Text = label, Style = (Style)FindResource("SettingLabel"), HorizontalAlignment = HorizontalAlignment.Center });
+            col.Children.Add(new TextBlock { Text = label, Style = (Style)FindResource("SettingLabel"), HorizontalAlignment = HorizontalAlignment.Center,
+                Foreground = (Brush)FindResource(PedalColors[result.Count]) });
             host.Children.Add(col);
             result.Add((segs, value));
         }
         return result.ToArray();
     }
 
+    /// <summary>Embreagem âmbar, freio vermelho, acelerador verde (mesma ordem de BuildMeters).</summary>
+    static readonly string[] PedalColors = ["Warn", "Error", "Ok"];
+
+    /// <summary>Segmento apagado: a cor do pedal bem fraca.</summary>
+    Brush PedalOff(int m) => new SolidColorBrush(((SolidColorBrush)FindResource(PedalColors[m])).Color) { Opacity = 0.14 };
+
     void UpdateMeters((Rectangle[] Segs, TextBlock Value)[] meters, double[] values)
     {
-        var accent = (Brush)FindResource("Accent");
-        var off = Draw.Hex("#18232C");
         for (int m = 0; m < meters.Length; m++)
         {
+            var color = (Brush)FindResource(PedalColors[m]);
+            var off = PedalOff(m);
             var lit = (int)Math.Round(values[m] * meters[m].Segs.Length);
-            for (int s = 0; s < meters[m].Segs.Length; s++) meters[m].Segs[s].Fill = s < lit ? accent : off;
-            meters[m].Value.Text = $"{values[m] * 100:0}%";
+            for (int s = 0; s < meters[m].Segs.Length; s++) meters[m].Segs[s].Fill = s < lit ? color : off;
+            meters[m].Value.Text = T($"{values[m] * 100:0}%");
         }
     }
 
@@ -588,13 +600,17 @@ public partial class MainWindow : Window
 
     void BuildForceGraph()
     {
-        var grid = Draw.Hex("#1E1E1E");
+        var grid = (Brush)FindResource("Line");
+        // faixas de clipping: acima de +100% e abaixo de -100%
+        var band = new SolidColorBrush(Color.FromArgb(0x1F, 0xEF, 0x44, 0x44));
+        ForceGraph.At(new Rectangle { Width = GraphW, Height = GraphMid - GraphFull, Fill = band }, 0, 0);
+        ForceGraph.At(new Rectangle { Width = GraphW, Height = GraphMid - GraphFull, Fill = band }, 0, GraphMid + GraphFull);
         foreach (var y in new[] { GraphMid - GraphFull / 2, GraphMid, GraphMid + GraphFull / 2 })
             ForceGraph.Children.Add(new Line { X1 = 0, X2 = GraphW, Y1 = y, Y2 = y, Stroke = grid, StrokeThickness = y == GraphMid ? 1.5 : 1 });
         foreach (var y in new[] { GraphMid - GraphFull, GraphMid + GraphFull })
             ForceGraph.Children.Add(new Line { X1 = 0, X2 = GraphW, Y1 = y, Y2 = y, Stroke = (Brush)FindResource("Error"), StrokeThickness = 1, StrokeDashArray = [4, 4], Opacity = 0.7 });
-        ForceGraph.At(new TextBlock { Text = "+100%", FontSize = 10, Foreground = (Brush)FindResource("TextFaint") }, 0, GraphMid - GraphFull - 16);
-        ForceGraph.At(new TextBlock { Text = "-100%", FontSize = 10, Foreground = (Brush)FindResource("TextFaint") }, 0, GraphMid + GraphFull + 2);
+        ForceGraph.At(new TextBlock { Text = "+100%", FontSize = 10, Foreground = (Brush)FindResource("TextFaint") }, 4, GraphMid - GraphFull - 16);
+        ForceGraph.At(new TextBlock { Text = "-100%", FontSize = 10, Foreground = (Brush)FindResource("TextFaint") }, 4, GraphMid + GraphFull + 2);
         _forceLine.Stroke = (Brush)FindResource("Accent");
         ForceGraph.Children.Add(_forceLine);
     }
@@ -611,16 +627,16 @@ public partial class MainWindow : Window
         foreach (var v in _force) points.Add(new Point(GraphW * i++ / ForceSamples, GraphMid - Math.Clamp(v, -1, 1) * GraphFull));
         _forceLine.Points = points;
 
-        if (!active) { ForceNow.Text = "—"; ClipNow.Text = "—"; GameName.Text = "nenhum"; return; }
-        ForceNow.Text = $"{f!.Force / 100.0:+0;-0;0}%";
+        if (!active) { ForceNow.Text = "—"; ClipNow.Text = "—"; GameName.Text = T("nenhum"); return; }
+        ForceNow.Text = T($"{f!.Force / 100.0:+0;-0;0}%");
         var clip = _force.Count(v => Math.Abs(v) >= 1) * 100.0 / _force.Count;
-        ClipNow.Text = $"{clip:0.0}%";
+        ClipNow.Text = T($"{clip:0.0}%");
         ClipNow.Foreground = clip > 5 ? (Brush)FindResource("Error") : clip > 0 ? (Brush)FindResource("Warn") : Brushes.White;
-        ClipNow.ToolTip = clip > 5 ? "A força está batendo no máximo: baixe a intensidade no jogo ou a INTENSIDADE GLOBAL." : null;
+        ClipNow.ToolTip = clip > 5 ? T("A força está batendo no máximo: baixe a intensidade no jogo ou a INTENSIDADE GLOBAL.") : null;
         if (f.Pid != _forcePid)
         {
             _forcePid = f.Pid;
-            try { _forceGame = Process.GetProcessById(f.Pid).ProcessName; } catch { _forceGame = $"pid {f.Pid}"; }
+            try { _forceGame = Process.GetProcessById(f.Pid).ProcessName; } catch { _forceGame = T($"pid {f.Pid}"); }
         }
         GameName.Text = _forceGame;
     }
@@ -632,14 +648,14 @@ public partial class MainWindow : Window
         for (int b = 1; b <= 23; b++)
         {
             var dot = new Grid { Width = 34, Height = 34, Margin = new Thickness(0, 0, 8, 8) };
-            var e = new Ellipse { Fill = Draw.Hex("#262626") };
+            var e = new Ellipse { Fill = Draw.Hex("#1B2230") };
             var t = new TextBlock { Text = b.ToString(), FontSize = 11, FontWeight = FontWeights.SemiBold, Foreground = (Brush)FindResource("TextDim"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             dot.Children.Add(e);
             dot.Children.Add(t);
             ButtonGrid.Children.Add(dot);
             _buttonDots.Add((e, t));
         }
-        _hatText = new TextBlock { Text = "Direcional: solto", Style = (Style)FindResource("Hint"), Width = 300, Margin = new Thickness(0, 6, 0, 0) };
+        _hatText = new TextBlock { Text = T("Direcional: solto"), Style = (Style)FindResource("Hint"), Width = 300, Margin = new Thickness(0, 6, 0, 0) };
         ButtonGrid.Children.Add(_hatText);
     }
 
@@ -655,7 +671,7 @@ public partial class MainWindow : Window
             if (DateTime.Now - _lastErrorToast > TimeSpan.FromSeconds(5))
             {
                 _lastErrorToast = DateTime.Now;
-                ShowToast("!", "Error", $"Erro · {l.Origem}", l.Mensagem, "VER DETALHES");
+                ShowToast("!", "Error", T($"Erro · {l.Origem}"), l.Mensagem, T("Ver detalhes"));
             }
         }
         if (_paused) { _pausedLines.Add(l); return; }
@@ -688,7 +704,7 @@ public partial class MainWindow : Window
     void Origin_Click(object sender, MouseButtonEventArgs e)
     {
         _origin = Origins[(Array.IndexOf(Origins, _origin) + 1) % Origins.Length];
-        OriginText.Text = _origin == "" ? "Todas as origens" : _origin;
+        OriginText.Text = _origin == "" ? T("Todas as origens") : _origin;
         _logView.Refresh();
     }
 
@@ -714,12 +730,12 @@ public partial class MainWindow : Window
     void ConsoleCopy_Click(object sender, RoutedEventArgs e)
     {
         Clipboard.SetText(string.Join(Environment.NewLine, VisibleLines));
-        ShowToast("LOG", "Ok", "Copiado", "As linhas do console estão na área de transferência.");
+        ShowToast("LOG", "Ok", T("Copiado"), T("As linhas do console estão na área de transferência."));
     }
 
     void ConsoleExport_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.SaveFileDialog { FileName = $"g27hub-log-{DateTime.Now:yyyyMMdd-HHmm}.txt", Filter = "Texto (*.txt)|*.txt" };
+        var dlg = new Microsoft.Win32.SaveFileDialog { FileName = $"g27hub-log-{DateTime.Now:yyyyMMdd-HHmm}.txt", Filter = T("Texto (*.txt)|*.txt") };
         if (dlg.ShowDialog(this) != true) return;
         File.WriteAllLines(dlg.FileName, VisibleLines);
         AppLog.Ok("APP", $"Log exportado para {dlg.FileName}");
@@ -756,24 +772,24 @@ public partial class MainWindow : Window
         _testsRan = true;
         var r = new List<(string, bool?, string)>();
         var conn = _dev.IsConnected;
-        r.Add(("Volante conectado", conn, conn ? $"046D:{_dev.Device?.ProductID:X4}" : "não encontrado"));
-        r.Add(("Modo nativo ativo", _dev.IsNative, _dev.IsNative ? "" : "use Reaplicar"));
-        r.Add(("Rotação aplicada", conn, $"{_dev.Range}°"));
+        r.Add((T("Volante conectado"), conn, conn ? T($"046D:{_dev.Device?.ProductID:X4}") : T("não encontrado")));
+        r.Add((T("Modo nativo ativo"), _dev.IsNative, _dev.IsNative ? "" : T("use Reaplicar")));
+        r.Add((T("Rotação aplicada"), conn, T($"{_dev.Range}°")));
         var ffb = FfbRegistration.IsRegistered();
-        r.Add(("DLL de FFB registrada", ffb, ffb ? "x64 + x86" : "aba Força → Ativar"));
-        BuildQuickTests([.. r, ("Pulso de força de teste", null, "rodando…")]);
+        r.Add((T("DLL de FFB registrada"), ffb, ffb ? "x64 + x86" : T("aba Força → Ativar")));
+        BuildQuickTests([.. r, (T("Pulso de força de teste"), null, T("rodando…"))]);
 
         var moved = conn ? await Pulse() : null;
-        r.Add(("Pulso de força de teste", moved is { } m ? Math.Abs(m) > 2 : conn ? false : null, moved is { } mv ? $"girou {mv:+0;-0}°" : "sem volante"));
+        r.Add((T("Pulso de força de teste"), moved is { } m ? Math.Abs(m) > 2 : conn ? false : null, moved is { } mv ? T($"girou {mv:+0;-0}°") : T("sem volante")));
         if (conn) await TestLeds();
-        r.Add(("Teste dos LEDs", null, conn ? "confira no volante" : "sem volante"));
+        r.Add((T("Teste dos LEDs"), null, conn ? T("confira no volante") : T("sem volante")));
         var hvci = Diagnostics.MemoryIntegrity();
-        r.Add(("Integridade de Memória", null, hvci == true ? "ligada" : hvci == false ? "desligada" : "desconhecida"));
+        r.Add((T("Integridade de Memória"), null, hvci == true ? "ligada" : hvci == false ? "desligada" : "desconhecida"));
         var old = Diagnostics.OldLogitechDrivers();
-        r.Add(("Drivers antigos da Logitech", old.Length == 0, old.Length == 0 ? "nenhum" : string.Join(", ", old)));
+        r.Add((T("Drivers antigos da Logitech"), old.Length == 0, old.Length == 0 ? T("nenhum") : string.Join(", ", old)));
         var vjoy = Diagnostics.VJoyInstalled();
         var hidhide = Diagnostics.HidHideInstalled();
-        r.Add(("vJoy / HidHide", null, !vjoy && !hidhide ? "não instalados" : $"{(vjoy ? "vJoy" : "")} {(hidhide ? "HidHide" : "")}".Trim() + " instalado"));
+        r.Add((T("vJoy / HidHide"), null, !vjoy && !hidhide ? T("não instalados") : $"{(vjoy ? "vJoy" : "")} {(hidhide ? "HidHide" : "")}".Trim() + T(" instalado")));
         BuildQuickTests(r);
 
         foreach (var (name, ok, detail) in r)
@@ -796,21 +812,21 @@ public partial class MainWindow : Window
             QuickTests.Children.Add(g);
         }
         if (!QuickTests.Children.OfType<Grid>().Any())
-            QuickTests.Children.Add(new TextBlock { Text = "Clique em RODAR TODOS.", Style = (Style)FindResource("Hint") });
+            QuickTests.Children.Add(new TextBlock { Text = T("Clique em RODAR TODOS."), Style = (Style)FindResource("Hint") });
     }
 
     // ================= notificações (5.7) =================
 
     void ShowToast(string icon, string kind, string title, string body, params string[] actions) =>
         ShowToast(icon, kind, title, body, TimeSpan.FromSeconds(7), (actions.Length == 0 ? ["OK"] : actions)
-            .Select(a => (a, a == "VER DETALHES" ? () => { if (ConsolePanel.Visibility != Visibility.Visible) ToggleConsole(true); } : (Action?)null)).ToArray());
+            .Select(a => (a, a == T("Ver detalhes") ? () => { if (ConsolePanel.Visibility != Visibility.Visible) ToggleConsole(true); } : (Action?)null)).ToArray());
 
     /// <summary>Notificação com botões de ação próprios (cada botão fecha a notificação e roda a ação).</summary>
     void ShowToast(string icon, string kind, string title, string body, TimeSpan duration, params (string Label, Action? OnClick)[] actions)
     {
         if (!_config.Notifications && kind != "Error") return;
         ToastIcon.Text = icon;
-        ToastMark.Text = kind switch { "Ok" => "\uE73E", "Warn" => "\uE7BA", "Error" => "\uE783", _ => "\uEA80" };
+        ToastMark.Text = kind switch { "Ok" => "\uE73E", "Warn" => "\uE7BA", "Error" => "\uE783", _ => T("\uEA80") };
         ToastMark.Foreground = (Brush)FindResource(kind);
         ToastTitle.Text = title;
         ToastBody.Text = body;
@@ -858,6 +874,36 @@ public partial class MainWindow : Window
         return (bmp, System.Drawing.Icon.FromHandle(gdi.GetHicon()));
     }
 
+    /// <summary>"--export-icon arquivo.ico": o mesmo desenho do G27 em .ico (16 a 256 px, PNG dentro) para o .exe e o instalador.</summary>
+    public static void ExportIcon(string path)
+    {
+        int[] sizes = [256, 64, 48, 32, 16];
+        var pngs = sizes.Select(size =>
+        {
+            var wheel = new G27Wheel { Width = size, Height = size };
+            wheel.Measure(new Size(size, size));
+            wheel.Arrange(new Rect(0, 0, size, size));
+            wheel.UpdateLayout();
+            var bmp = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+            bmp.Render(wheel);
+            var enc = new PngBitmapEncoder();
+            enc.Frames.Add(BitmapFrame.Create(bmp));
+            using var ms = new MemoryStream();
+            enc.Save(ms);
+            return ms.ToArray();
+        }).ToList();
+        using var w = new BinaryWriter(File.Create(path));
+        w.Write((ushort)0); w.Write((ushort)1); w.Write((ushort)sizes.Length); // ICONDIR
+        int offset = 6 + 16 * sizes.Length;
+        for (int i = 0; i < sizes.Length; i++)
+        {
+            w.Write((byte)(sizes[i] % 256)); w.Write((byte)(sizes[i] % 256)); w.Write((byte)0); w.Write((byte)0);
+            w.Write((ushort)1); w.Write((ushort)32); w.Write(pngs[i].Length); w.Write(offset);
+            offset += pngs[i].Length;
+        }
+        foreach (var p in pngs) w.Write(p);
+    }
+
     // ================= capturas para revisão (G27Hub.App --shots <pasta>) =================
 
     public void SaveShots(string dir, bool live)
@@ -898,10 +944,25 @@ public partial class MainWindow : Window
         Shot("16-direcao-livre");
         FfbTestOverlay.Visibility = Visibility.Collapsed;
 
-        ShowCompatProgress("Instalando os drivers", 5);
+        ShowWizard();
+        Shot("18-assistente-inicio");
+        WizardIntro.Visibility = Visibility.Collapsed;
+        WizardRow(true, T("Drivers antigos da Logitech"), T("Nenhum encontrado."));
+        WizardRow(true, T("Volante G27"), T("Conectado."));
+        WizardRow(true, T("Modo nativo"), T("900° de rotação, pedais separados e embreagem. O app reaplica sozinho a cada vez que o volante é ligado."));
+        WizardRow(true, T("Force feedback para os jogos"), T("Ativado (32 e 64 bits). Desliga na aba Força, se precisar."));
+        WizardRow(null, T("Steam Input"), T("Se um jogo da Steam não enxergar o volante: Steam → propriedades do jogo → Controle → desative a Entrada Steam."));
+        WizardRow(true, T("Teste de força"), T("Funcionou: o volante girou 27°."));
+        WizardNext.Content = T("Pronto");
+        WizardSkip.Visibility = Visibility.Collapsed;
+        UpdateLayout();
+        Shot("19-assistente-fim");
+        WizardOverlay.Visibility = Visibility.Collapsed;
+
+        ShowCompatProgress(T("Instalando os drivers"), 5);
         _compatTimer.Stop();
         (_compatDone, _compatFrac, _compatShown, _compatCreep) = (2, 0.25, 0.45, false);
-        CompatStep("Criando ponto de restauração do Windows...", creep: false);
+        CompatStep(T("Criando ponto de restauração do Windows..."), creep: false);
         UpdateLayout();
         CompatTick(null, EventArgs.Empty);
         Shot("17-instalando-drivers");

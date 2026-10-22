@@ -18,6 +18,8 @@
   <ItemGroup>
     <!-- base de compatibilidade de jogos (Fase 6) -->
     <EmbeddedResource Include="..\..\data\compat-db.json" LogicalName="compat-db.json" />
+    <!-- textos da interface em inglês (chave = português), ver Lang.cs -->
+    <EmbeddedResource Include="..\..\data\lang-en.json" LogicalName="lang-en.json" />
   </ItemGroup>
 
 </Project>

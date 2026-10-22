@@ -8,6 +8,11 @@
     <UseWPF>true</UseWPF>
     <!-- só para o ícone da bandeja (NotifyIcon) -->
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>..\..\assets\g27hub.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Product>G27 Hub</Product>
+    <Authors>John Salim / Samosbourne</Authors>
+    <Copyright>John Salim / Samosbourne — desenvolvido com IA (Claude, Anthropic)</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

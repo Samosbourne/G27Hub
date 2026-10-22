@@ -6,19 +6,35 @@
         <Style TargetType="UserControl">
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.35"/>
+                    <Setter Property="Opacity" Value="0.42"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </UserControl.Style>
-    <!-- RÓTULO em cima; slider fino com o valor à direita (seção 5.1) -->
+    <!-- Nome à esquerda e valor (com unidade) à direita na mesma linha; slider com a parte feita em ciano embaixo -->
     <StackPanel>
-        <TextBlock Text="{Binding Label, ElementName=Self}" Style="{StaticResource SettingLabel}" Margin="0,0,0,2"/>
-        <Grid>
-            <Slider Minimum="{Binding Minimum, ElementName=Self}" Maximum="{Binding Maximum, ElementName=Self}"
-                    Value="{Binding Value, ElementName=Self, Mode=TwoWay}" Margin="0,0,42,0"/>
-            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5"
-                       Text="{Binding Value, ElementName=Self, StringFormat=0}"/>
+        <Grid Margin="0,0,0,6">
+            <DockPanel Margin="0,0,56,0" VerticalAlignment="Center">
+                <Ellipse DockPanel.Dock="Left" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center" Fill="{Binding Dot, ElementName=Self}">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Dot, ElementName=Self}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock Text="{Binding Label, ElementName=Self}" Foreground="{StaticResource TextLabel}" FontSize="13"
+                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+            </DockPanel>
+            <Border HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="4" Padding="6,1" Background="#1400D2FF">
+                <TextBlock x:Name="ValueText" Foreground="{StaticResource Accent}" FontSize="13" FontWeight="SemiBold"
+                           Typography.NumeralAlignment="Tabular"/>
+            </Border>
         </Grid>
+        <Slider Minimum="{Binding Minimum, ElementName=Self}" Maximum="{Binding Maximum, ElementName=Self}"
+                Value="{Binding Value, ElementName=Self, Mode=TwoWay}"/>
     </StackPanel>
 </UserControl>

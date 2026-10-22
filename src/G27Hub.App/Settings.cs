@@ -1,5 +1,6 @@
 using G27Hub.Logging;
 using Microsoft.Win32;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 

@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using G27Hub.App.Controls;
 using G27Hub.Core;
 using G27Hub.Logging;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 
@@ -53,12 +54,12 @@ public partial class MainWindow
             GameBadge.Visibility = HeaderGame.Visibility = Visibility.Collapsed;
             return;
         }
-        var text = $"{game} aberto · perfil {(_config.Active.IsDesktop ? "Desktop" : _config.Active.Name)}";
+        var text = T($"{game} aberto · perfil {(_config.Active.IsDesktop ? "Desktop" : _config.Active.Name)}");
         GameBadgeText.Text = text;
         HeaderGameText.Text = text;
         GameBadge.Visibility = Visibility.Visible;
         HeaderGame.Visibility = HeaderTitle.Visibility; // só junto do título "G27" (página do volante)
-        GameBadge.ToolTip = HeaderGame.ToolTip = "Jogo reconhecido pelo G27 Hub" + (_config.DetectorOn ? "" : " (avisos do detector desligados)");
+        GameBadge.ToolTip = HeaderGame.ToolTip = T("Jogo reconhecido pelo G27 Hub") + (_config.DetectorOn ? "" : T(" (avisos do detector desligados)"));
     }
 
     void SwitchProfileFor(string[] names)
@@ -88,8 +89,8 @@ public partial class MainWindow
         ApplyWheel(force: true);
         AppLog.Ok("PERFIL", $"Perfil ativo: {p.Name}{(auto ? " (automático)" : "")}");
         if (auto)
-            ShowToast(p.IsDesktop ? "PC" : Initials(p.Name), "Accent", $"Perfil: {p.Name}",
-                $"{W.Range}° · {(p.IsDesktop || p.UseOwnSettings ? "configurações deste perfil" : "configurações do Desktop: Padrão")}");
+            ShowToast(p.IsDesktop ? "PC" : Initials(p.Name), "Accent", T($"Perfil: {p.Name}"),
+                T($"{W.Range}° · ") + (p.IsDesktop || p.UseOwnSettings ? T("configurações deste perfil") : T("configurações do Desktop: Padrão")));
     }
 
     // ================= cabeçalho, cadeado e "configurações especiais" =================
@@ -97,8 +98,8 @@ public partial class MainWindow
     void UpdateProfileHeader()
     {
         var p = _config.Active;
-        ProfileName.Text = p.IsDesktop ? "DESKTOP: Padrão" : p.Name;
-        ProfileCaption.Text = _config.Locked ? "PERFIL TRAVADO" : "PERFIL ATIVO";
+        ProfileName.Text = p.IsDesktop ? T("DESKTOP: Padrão") : p.Name;
+        ProfileCaption.Text = _config.Locked ? T("PERFIL TRAVADO") : T("PERFIL ATIVO");
         var lockGlyph = _config.Locked ? "" : "";
         ProfileLockIcon.Text = lockGlyph;
         ProfileLockIcon.Foreground = (Brush)FindResource(_config.Locked ? "Accent" : "TextDim");
@@ -157,7 +158,7 @@ public partial class MainWindow
         foreach (var p in _config.Profiles)
         {
             var active = p.Id == _config.ActiveId;
-            var row = new Grid { Background = active ? Draw.Hex("#2A2A2A") : Brushes.Transparent, Cursor = Cursors.Hand, Margin = new Thickness(0, 1, 0, 1) };
+            var row = new Grid { Background = active ? Draw.Hex("#232B3A") : Brushes.Transparent, Cursor = Cursors.Hand, Margin = new Thickness(0, 1, 0, 1) };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition());
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -171,11 +172,11 @@ public partial class MainWindow
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = p.Name, FontSize = 12.5, Foreground = active ? (Brush)FindResource("Accent") : Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis });
             if (!p.IsDesktop)
-                text.Children.Add(new TextBlock { Text = (p.Exes.Count > 0 ? string.Join(", ", p.Exes) : "sem .exe (não troca sozinho)") + (p.Exes.Select(_db.Find).FirstOrDefault(x => x != null) is { } entry ? $" · {entry.Status}" : ""), FontSize = 10.5, Foreground = (Brush)FindResource("TextFaint"), TextTrimming = TextTrimming.CharacterEllipsis });
+                text.Children.Add(new TextBlock { Text = (p.Exes.Count > 0 ? string.Join(", ", p.Exes) : T("sem .exe (não troca sozinho)")) + (p.Exes.Select(_db.Find).FirstOrDefault(x => x != null) is { } entry ? $" · {T(entry.Status)}" : ""), FontSize = 10.5, Foreground = (Brush)FindResource("TextFaint"), TextTrimming = TextTrimming.CharacterEllipsis });
             Grid.SetColumn(text, 1);
             row.Children.Add(text);
 
-            var more = new Button { Style = (Style)FindResource("IconButton"), Width = 30, Height = 30, ToolTip = "Opções do perfil", Content = new TextBlock { Text = "", Style = (Style)FindResource("Icon"), FontSize = 12, Foreground = (Brush)FindResource("TextDim") } };
+            var more = new Button { Style = (Style)FindResource("IconButton"), Width = 30, Height = 30, ToolTip = T("Opções do perfil"), Content = new TextBlock { Text = "", Style = (Style)FindResource("Icon"), FontSize = 12, Foreground = (Brush)FindResource("TextDim") } };
             more.Click += (_, ev) => { ev.Handled = true; ProfileMenu(p, more); };
             Grid.SetColumn(more, 2);
             row.Children.Add(more);
@@ -185,7 +186,7 @@ public partial class MainWindow
                 ProfilePopup.IsOpen = false;
                 ActivateProfile(p, auto: false);
                 if (!_config.Locked && _detectedId != null && _detectedId != p.Id)
-                    ShowToast("PERFIL", "Accent", $"Perfil: {p.Name}", "Escolhido à mão. Vale até um jogo abrir ou fechar (ou trave com o cadeado).");
+                    ShowToast(T("PERFIL"), "Accent", T($"Perfil: {p.Name}"), T("Escolhido à mão. Vale até um jogo abrir ou fechar (ou trave com o cadeado)."));
             };
             ProfileList.Children.Add(row);
         }
@@ -202,15 +203,15 @@ public partial class MainWindow
             return mi;
         }
         Item("Duplicar", () => { var c = _config.Duplicate(p); _config.Save(); AppLog.Ok("PERFIL", $"Perfil duplicado: {c.Name}"); });
-        Item("Renomear…", () => Rename(p), !p.IsDesktop);
-        Item("Exportar…", () => Export(p));
-        Item("Excluir", () => Delete(p), !p.IsDesktop);
+        Item(T("Renomear…"), () => Rename(p), !p.IsDesktop);
+        Item(T("Exportar…"), () => Export(p));
+        Item(T("Excluir"), () => Delete(p), !p.IsDesktop);
         menu.IsOpen = true;
     }
 
     void Rename(Profile p)
     {
-        var name = InputDialog.Ask(this, "Renomear perfil", p.Name);
+        var name = InputDialog.Ask(this, T("Renomear perfil"), p.Name);
         if (string.IsNullOrWhiteSpace(name)) return;
         AppLog.Ok("PERFIL", $"Perfil \"{p.Name}\" renomeado para \"{name.Trim()}\"");
         p.Name = name.Trim();
@@ -220,7 +221,7 @@ public partial class MainWindow
 
     void Delete(Profile p)
     {
-        if (MessageBox.Show(this, $"Excluir o perfil \"{p.Name}\"?", "G27 Hub", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        if (MessageBox.Show(this, T($"Excluir o perfil \"{p.Name}\"?"), T("G27 Hub"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         var wasActive = p.Id == _config.ActiveId;
         _config.Remove(p);
         _config.Save();
@@ -230,7 +231,7 @@ public partial class MainWindow
 
     void Export(Profile p)
     {
-        var dlg = new Microsoft.Win32.SaveFileDialog { FileName = $"{string.Concat(p.Name.Split(Path.GetInvalidFileNameChars()))}.g27profile", Filter = "Perfil do G27 Hub (*.g27profile)|*.g27profile" };
+        var dlg = new Microsoft.Win32.SaveFileDialog { FileName = $"{string.Concat(p.Name.Split(Path.GetInvalidFileNameChars()))}.g27profile", Filter = T("Perfil do G27 Hub (*.g27profile)|*.g27profile") };
         if (dlg.ShowDialog(this) != true) return;
         File.WriteAllText(dlg.FileName, AppConfig.ToJson(p));
         AppLog.Ok("PERFIL", $"Perfil \"{p.Name}\" exportado para {dlg.FileName}");
@@ -239,14 +240,14 @@ public partial class MainWindow
     void ImportProfile_Click(object sender, RoutedEventArgs e)
     {
         ProfilePopup.IsOpen = false;
-        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Perfil do G27 Hub (*.g27profile)|*.g27profile" };
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = T("Perfil do G27 Hub (*.g27profile)|*.g27profile") };
         if (dlg.ShowDialog(this) != true) return;
         try
         {
             var p = _config.Import(File.ReadAllText(dlg.FileName));
             _config.Save();
             AppLog.Ok("PERFIL", $"Perfil importado: {p.Name}");
-            ShowToast("PERFIL", "Ok", "Perfil importado", p.Name);
+            ShowToast(T("PERFIL"), "Ok", T("Perfil importado"), p.Name);
         }
         catch (Exception ex)
         {
@@ -257,7 +258,7 @@ public partial class MainWindow
     void AddGame_Click(object sender, RoutedEventArgs e)
     {
         ProfilePopup.IsOpen = false;
-        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Jogo (*.exe)|*.exe", Title = "Escolha o .exe do jogo" };
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = T("Jogo (*.exe)|*.exe"), Title = T("Escolha o .exe do jogo") };
         if (dlg.ShowDialog(this) != true) return;
         var info = FileVersionInfo.GetVersionInfo(dlg.FileName);
         var name = !string.IsNullOrWhiteSpace(info.ProductName) ? info.ProductName.Trim() : Path.GetFileNameWithoutExtension(dlg.FileName);
@@ -300,14 +301,17 @@ public partial class MainWindow
     {
         MenuPopup.IsOpen = false;
         MessageBox.Show(this,
-            "G27 Hub — uso pessoal\n\n" +
-            "Faz pelo Logitech G27 o que o LGS fazia, sem driver de kernel.\n\n" +
-            "Créditos:\n" +
-            "• gcampa/g27-ffb-driverless (MIT) — base da DLL de force feedback\n" +
-            "• HidSharp, Serilog\n" +
-            "• Protocolo do G27: fatos do hid-lg4ff (Linux)\n\n" +
-            "Logitech, G27 e G HUB são marcas da Logitech; este app não é da Logitech.",
-            "Sobre o G27 Hub", MessageBoxButton.OK, MessageBoxImage.Information);
+            T($"G27 Hub {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\n\n") +
+            T("Faz pelo Logitech G27 o que o LGS fazia, sem driver de kernel.\n\n") +
+            T("Idealizado e desenvolvido por John Salim / Samosbourne, junto com IA (Claude, da Anthropic): o código foi escrito com inteligência artificial.\n\n") +
+            T("Créditos:\n") +
+            T("• gcampa/g27-ffb-driverless (MIT) — base da DLL de force feedback\n") +
+            T("• SCS Software, SCS SDK (MIT) — plugin de telemetria do ETS2/ATS\n") +
+            T("• vJoy (Shaul Eizikovich, njz3, BrunnerInnovation) e HidHide (Nefarius) — Modo Compatibilidade Total\n") +
+            T("• HidSharp, Serilog\n") +
+            T("• Protocolo do G27: fatos do hid-lg4ff (Linux)\n\n") +
+            T("Logitech, G27 e G HUB são marcas da Logitech; este app não é da Logitech."),
+            T("Sobre o G27 Hub"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     void DeviceSettings_Click(object sender, RoutedEventArgs e)
@@ -315,9 +319,9 @@ public partial class MainWindow
         e.Handled = true; // não abrir o volante ao clicar na engrenagem do card
         var d = _dev.Device;
         DeviceInfo.Text = d == null
-            ? "G27 não conectado."
-            : $"{d.GetFriendlyName()}\nID 046D:{d.ProductID:X4} · {(_dev.IsNative ? "modo nativo" : "modo compatível")}\n" +
-              $"Versão do dispositivo: {d.ReleaseNumberBcd >> 8:X}.{d.ReleaseNumberBcd & 0xFF:X2}\nRotação: {_dev.Range}° · Perfil: {_config.Active.Name}";
+            ? T("G27 não conectado.")
+            : T($"{d.GetFriendlyName()}\nID 046D:{d.ProductID:X4} · ") + (_dev.IsNative ? T("modo nativo") : T("modo compatível")) + "\n" +
+              T($"Versão do dispositivo: {d.ReleaseNumberBcd >> 8:X}.{d.ReleaseNumberBcd & 0xFF:X2}\nRotação: {_dev.Range}° · Perfil: {_config.Active.Name}");
         DevicePopup.IsOpen = true;
     }
 }
@@ -327,13 +331,13 @@ static class InputDialog
 {
     public static string? Ask(Window owner, string title, string initial)
     {
-        var box = new TextBox { Text = initial, FontSize = 13, Padding = new Thickness(6), Background = Draw.Hex("#2A2A2A"), Foreground = Brushes.White, CaretBrush = Brushes.White, BorderBrush = Draw.Hex("#1A9BFF") };
+        var box = new TextBox { Text = initial, FontSize = 13, Padding = new Thickness(6), Background = Draw.Hex("#232B3A"), Foreground = Brushes.White, CaretBrush = Brushes.White, BorderBrush = Draw.Hex("#00D2FF") };
         var ok = new Button { Content = "OK", IsDefault = true, Style = (Style)owner.FindResource("AccentButton"), Margin = new Thickness(0, 0, 8, 0), MinWidth = 80 };
-        var cancel = new Button { Content = "CANCELAR", IsCancel = true, Style = (Style)owner.FindResource("FlatButton"), MinWidth = 80 };
+        var cancel = new Button { Content = T("Cancelar"), IsCancel = true, Style = (Style)owner.FindResource("FlatButton"), MinWidth = 80 };
         var win = new Window
         {
             Title = title, Owner = owner, Width = 380, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = Draw.Hex("#1F1F1F"), Foreground = Brushes.White,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = Draw.Hex("#141923"), Foreground = Brushes.White,
             Content = new StackPanel
             {
                 Margin = new Thickness(18),

@@ -7,6 +7,7 @@ using System.Windows.Media;
 using G27Hub.App.Controls;
 using G27Hub.Core;
 using G27Hub.Logging;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 
@@ -51,7 +52,7 @@ public partial class MainWindow : IAssignmentHost
         LoadSettingsIntoUi();
         ApplyWheel(force: false);
         AppLog.Ok("HID", $"Atalho do volante: rotação {next}°");
-        ShowToast("G27", "Accent", $"Rotação: {next}°", "Atalho: os dois vermelhos de cima do volante.");
+        ShowToast("G27", "Accent", T($"Rotação: {next}°"), T("Atalho: os dois vermelhos de cima do volante."));
         if (!_dev.IsConnected) return;
         var count = Array.IndexOf(steps, next) + 1; // LEDs acesos = posição na lista
         HoldLeds(1200); // a telemetria volta sozinha depois
@@ -63,23 +64,23 @@ public partial class MainWindow : IAssignmentHost
 
     static IEnumerable<(string Group, int Button, string Name)> AllButtons()
     {
-        string[] pos = ["cima", "meio", "baixo"];
-        for (int i = 0; i < 3; i++) yield return ("VOLANTE", G27Buttons.WheelLeft[i], $"Esquerda, {pos[i]}");
-        for (int i = 0; i < 3; i++) yield return ("VOLANTE", G27Buttons.WheelRight[i], $"Direita, {pos[i]}");
-        yield return ("VOLANTE", G27Buttons.PaddleLeft, "Borboleta esquerda");
-        yield return ("VOLANTE", G27Buttons.PaddleRight, "Borboleta direita");
-        for (int i = 0; i < 4; i++) yield return ("BASE DO CÂMBIO", G27Buttons.ShifterRed[i], $"Vermelho {i + 1}");
-        string[] black = ["baixo", "esquerda", "direita", "cima"];
-        for (int i = 0; i < 4; i++) yield return ("BASE DO CÂMBIO", G27Buttons.ShifterBlack[i], $"Preto de {black[i]}");
-        yield return ("DIRECIONAL", ButtonEngine.HatUp, "Cima");
-        yield return ("DIRECIONAL", ButtonEngine.HatRight, "Direita");
-        yield return ("DIRECIONAL", ButtonEngine.HatDown, "Baixo");
-        yield return ("DIRECIONAL", ButtonEngine.HatLeft, "Esquerda");
-        for (int g = 0; g < 6; g++) yield return ("MARCHAS", G27Buttons.Gears[g], $"{g + 1}ª marcha");
-        yield return ("MARCHAS", G27Buttons.Reverse, "Ré");
+        string[] pos = [T("em cima"), T("no meio"), T("embaixo")];
+        for (int i = 0; i < 3; i++) yield return (T("VOLANTE"), G27Buttons.WheelLeft[i], T($"Esquerda, {pos[i]}"));
+        for (int i = 0; i < 3; i++) yield return (T("VOLANTE"), G27Buttons.WheelRight[i], T($"Direita, {pos[i]}"));
+        yield return (T("VOLANTE"), G27Buttons.PaddleLeft, T("Borboleta esquerda"));
+        yield return (T("VOLANTE"), G27Buttons.PaddleRight, T("Borboleta direita"));
+        for (int i = 0; i < 4; i++) yield return (T("BASE DO CÂMBIO"), G27Buttons.ShifterRed[i], T($"Vermelho {i + 1}"));
+        string[] black = [T("baixo"), T("esquerda"), T("direita"), T("cima")];
+        for (int i = 0; i < 4; i++) yield return (T("BASE DO CÂMBIO"), G27Buttons.ShifterBlack[i], T($"Preto de {black[i]}"));
+        yield return (T("DIRECIONAL"), ButtonEngine.HatUp, T("Cima"));
+        yield return (T("DIRECIONAL"), ButtonEngine.HatRight, T("Direita"));
+        yield return (T("DIRECIONAL"), ButtonEngine.HatDown, T("Baixo"));
+        yield return (T("DIRECIONAL"), ButtonEngine.HatLeft, T("Esquerda"));
+        for (int g = 0; g < 6; g++) yield return (T("MARCHAS"), G27Buttons.Gears[g], T($"{g + 1}ª marcha"));
+        yield return (T("MARCHAS"), G27Buttons.Reverse, T("Ré"));
     }
 
-    static string ButtonName(int b) => AllButtons().FirstOrDefault(x => x.Button == b) is { Name: not null } x ? $"{x.Group.ToLowerInvariant()} · {x.Name}" : $"botão {b}";
+    static string ButtonName(int b) => AllButtons().FirstOrDefault(x => x.Button == b) is { Name: not null } x ? T($"{x.Group.ToLowerInvariant()} · {x.Name}") : T($"botão {b}");
 
     // ================= aba Atribuições =================
 
@@ -92,6 +93,7 @@ public partial class MainWindow : IAssignmentHost
         LayerShift.IsEnabled = p.ShiftButton != 0;
         if (p.ShiftButton == 0) LayerNormal.IsChecked = true;
         RotationShortcutCheck.IsChecked = _config.RotationShortcut;
+        AssignWheel.Highlight(_selButton);
         BuildEditor();
         BuildAssignList();
         BuildPedalKeys();
@@ -102,7 +104,7 @@ public partial class MainWindow : IAssignmentHost
     {
         _selButton = b;
         AssignWheel.Highlight(b);
-        LastButton.Text = $"Editando: {ButtonName(b)} (botão {b})";
+        LastButton.Text = T($"Editando: {ButtonName(b)} (botão {b})");
         BuildEditor();
         BuildAssignList();
     }
@@ -147,14 +149,14 @@ public partial class MainWindow : IAssignmentHost
                 AssignList.Children.Add(new TextBlock { Text = g, Style = (Style)FindResource("SettingLabel"), Margin = new Thickness(22, 12, 22, 4) });
             }
             var sel = b == _selButton;
-            var action = b == p.ShiftButton ? "SHIFT" : map.TryGetValue(b, out var a) ? a.Summary(_config) : "Padrão";
+            var action = b == p.ShiftButton ? "SHIFT" : map.TryGetValue(b, out var a) ? a.Summary(_config) : T("Padrão");
             var row = new Grid();
             row.Children.Add(new TextBlock { Text = name, FontSize = 12.5 });
-            row.Children.Add(new TextBlock { Text = action, FontSize = 12, Foreground = action == "Padrão" ? (Brush)FindResource("TextDim") : (Brush)FindResource("Accent"), HorizontalAlignment = HorizontalAlignment.Right, MaxWidth = 140, TextTrimming = TextTrimming.CharacterEllipsis });
+            row.Children.Add(new TextBlock { Text = action, FontSize = 12, Foreground = action == T("Padrão") ? (Brush)FindResource("TextDim") : (Brush)FindResource("Accent"), HorizontalAlignment = HorizontalAlignment.Right, MaxWidth = 140, TextTrimming = TextTrimming.CharacterEllipsis });
             var border = new Border
             {
                 Padding = new Thickness(sel ? 19 : 22, 7, 22, 7), Child = row, Cursor = Cursors.Hand,
-                Background = sel ? Draw.Hex("#2A2A2A") : Brushes.Transparent,
+                Background = sel ? Draw.Hex("#232B3A") : Brushes.Transparent,
                 BorderBrush = (Brush)FindResource("Accent"), BorderThickness = new Thickness(sel ? 3 : 0, 0, 0, 0),
             };
             border.MouseLeftButtonUp += (_, _) => SelectButton(b);
@@ -172,9 +174,9 @@ public partial class MainWindow : IAssignmentHost
         map.TryGetValue(b, out var action);
         action ??= new ButtonAction();
 
-        AssignEditor.Children.Add(new TextBlock { Text = $"{ButtonName(b).ToUpperInvariant()} (BOTÃO {b}){(LayerShift.IsChecked == true ? " · CAMADA SHIFT" : "")}", Style = (Style)FindResource("SettingLabel"), Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 10) });
+        AssignEditor.Children.Add(new TextBlock { Text = $"{ButtonName(b).ToUpperInvariant()} " + T($"(BOTÃO {b})") + (LayerShift.IsChecked == true ? T(" · CAMADA SHIFT") : ""), Style = (Style)FindResource("SettingLabel"), Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 10) });
 
-        var isShift = new CheckBox { Content = "ESTE BOTÃO É O SHIFT (SEGURE PARA A CAMADA 2)", IsChecked = p.ShiftButton == b, Margin = new Thickness(0, 0, 0, 12), IsEnabled = LayerShift.IsChecked != true };
+        var isShift = new CheckBox { Content = T("Este botão é o Shift (segure para a camada 2)"), IsChecked = p.ShiftButton == b, Margin = new Thickness(0, 0, 0, 12), IsEnabled = LayerShift.IsChecked != true };
         isShift.Click += (_, _) =>
         {
             p.ShiftButton = isShift.IsChecked == true ? b : 0;
@@ -187,8 +189,8 @@ public partial class MainWindow : IAssignmentHost
 
         (ActionKind Kind, string Label)[] kinds =
         [
-            (ActionKind.None, "PADRÃO (SÓ O JOGO VÊ O BOTÃO)"), (ActionKind.Key, "TECLA OU COMBINAÇÃO"), (ActionKind.Macro, "MACRO"),
-            (ActionKind.Media, "MÍDIA / VOLUME"), (ActionKind.Program, "ABRIR PROGRAMA"), (ActionKind.Website, "ABRIR SITE"), (ActionKind.Profile, "TROCAR PARA O PERFIL"),
+            (ActionKind.None, T("Padrão (só o jogo vê o botão)")), (ActionKind.Key, T("Tecla ou combinação")), (ActionKind.Macro, "Macro"),
+            (ActionKind.Media, T("Mídia / volume")), (ActionKind.Program, T("Abrir programa")), (ActionKind.Website, T("Abrir site")), (ActionKind.Profile, T("Trocar para o perfil")),
         ];
         foreach (var (kind, label) in kinds)
         {
@@ -212,11 +214,11 @@ public partial class MainWindow : IAssignmentHost
                 cap.Changed += k => { action.Keys = k; SaveAssignments(); };
                 _captures.Add(cap);
                 param.Children.Add(cap);
-                param.Children.Add(new TextBlock { Text = "A tecla fica apertada enquanto você segura o botão.", Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
+                param.Children.Add(new TextBlock { Text = T("A tecla fica apertada enquanto você segura o botão."), Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
                 break;
 
             case ActionKind.Macro:
-                foreach (var (mode, label) in new[] { (MacroMode.Once, "TOCA UMA VEZ"), (MacroMode.RepeatWhileHeld, "REPETE ENQUANTO SEGURA"), (MacroMode.Toggle, "LIGA / DESLIGA (REPETE ATÉ APERTAR DE NOVO)") })
+                foreach (var (mode, label) in new[] { (MacroMode.Once, T("Toca uma vez")), (MacroMode.RepeatWhileHeld, T("Repete enquanto segura")), (MacroMode.Toggle, T("Liga / desliga (repete até apertar de novo)")) })
                 {
                     var r = new RadioButton { Content = label, GroupName = "MacroMode", IsChecked = action.Mode == mode, Margin = new Thickness(0, 0, 0, 6) };
                     r.Click += (_, _) => { action.Mode = mode; SaveAssignments(); };
@@ -224,27 +226,27 @@ public partial class MainWindow : IAssignmentHost
                 }
                 var steps = new TextBlock { Style = (Style)FindResource("Hint"), Foreground = Brushes.White, Margin = new Thickness(0, 6, 0, 8), Text = MacroText(action) };
                 param.Children.Add(steps);
-                var rec = new Button { Style = (Style)FindResource(_recording ? "FlatButton" : "AccentButton"), Content = _recording ? "PARAR GRAVAÇÃO" : "GRAVAR (DIGITE AS TECLAS)" };
+                var rec = new Button { Style = (Style)FindResource(_recording ? "FlatButton" : "AccentButton"), Content = _recording ? T("Parar gravação") : T("Gravar (digite as teclas)") };
                 rec.Click += (_, _) => ToggleRecording(action, steps, rec);
                 param.Children.Add(rec);
-                param.Children.Add(new TextBlock { Text = "Grava as teclas e o tempo entre elas. Clique em PARAR com o mouse.", Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
+                param.Children.Add(new TextBlock { Text = T("Grava as teclas e o tempo entre elas. Clique em PARAR com o mouse."), Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
                 break;
 
             case ActionKind.Media:
                 foreach (var m in KeyNames.Media)
                 {
-                    var r = new RadioButton { Content = m.ToUpperInvariant(), GroupName = "Media", IsChecked = action.Media == m, Margin = new Thickness(0, 0, 0, 6) };
+                    var r = new RadioButton { Content = T(m), GroupName = "Media", IsChecked = action.Media == m, Margin = new Thickness(0, 0, 0, 6) };
                     r.Click += (_, _) => { action.Media = m; SaveAssignments(); };
                     param.Children.Add(r);
                 }
                 break;
 
             case ActionKind.Program:
-                param.Children.Add(new TextBlock { Text = action.Path.Length > 0 ? action.Path : "Nenhum programa escolhido", Style = (Style)FindResource("Hint"), Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 8) });
-                var pick = new Button { Style = (Style)FindResource("FlatButton"), Content = "ESCOLHER PROGRAMA…" };
+                param.Children.Add(new TextBlock { Text = action.Path.Length > 0 ? action.Path : T("Nenhum programa escolhido"), Style = (Style)FindResource("Hint"), Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 8) });
+                var pick = new Button { Style = (Style)FindResource("FlatButton"), Content = T("Escolher programa…") };
                 pick.Click += (_, _) =>
                 {
-                    var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Programas (*.exe;*.lnk;*.bat)|*.exe;*.lnk;*.bat|Todos|*.*" };
+                    var dlg = new Microsoft.Win32.OpenFileDialog { Filter = T("Programas (*.exe;*.lnk;*.bat)|*.exe;*.lnk;*.bat|Todos|*.*") };
                     if (dlg.ShowDialog(this) != true) return;
                     action.Path = dlg.FileName;
                     SaveAssignments();
@@ -254,11 +256,11 @@ public partial class MainWindow : IAssignmentHost
                 break;
 
             case ActionKind.Website:
-                var url = new TextBox { Text = action.Url, FontSize = 12.5, Padding = new Thickness(6), Background = Draw.Hex("#2A2A2A"), Foreground = Brushes.White, CaretBrush = Brushes.White, BorderBrush = Draw.Hex("#3A3A3A") };
+                var url = new TextBox { Text = action.Url, FontSize = 12.5, Padding = new Thickness(6), Background = Draw.Hex("#232B3A"), Foreground = Brushes.White, CaretBrush = Brushes.White, BorderBrush = Draw.Hex("#2E3A4F") };
                 url.TextChanged += (_, _) => { action.Url = url.Text.Trim(); _config.Save(); };
                 url.LostFocus += (_, _) => BuildAssignList();
                 param.Children.Add(url);
-                param.Children.Add(new TextBlock { Text = "Ex.: youtube.com ou https://…", Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
+                param.Children.Add(new TextBlock { Text = T("Ex.: youtube.com ou https://…"), Style = (Style)FindResource("Hint"), Margin = new Thickness(0, 6, 0, 0) });
                 break;
 
             case ActionKind.Profile:
@@ -273,8 +275,8 @@ public partial class MainWindow : IAssignmentHost
     }
 
     static string MacroText(ButtonAction a) =>
-        a.Steps.Count == 0 ? "Macro vazia."
-        : string.Join("  ", a.Steps.Take(24).Select(s => $"{(s.DelayMs > 0 ? $"({s.DelayMs} ms) " : "")}{KeyNames.Name(s.Vk)}{(s.Down ? "↓" : "↑")}")) + (a.Steps.Count > 24 ? "  …" : "");
+        a.Steps.Count == 0 ? T("Macro vazia.")
+        : string.Join("  ", a.Steps.Take(24).Select(s => $"{(s.DelayMs > 0 ? $"({s.DelayMs} ms) " : "")}{KeyNames.Display(KeyNames.Name(s.Vk))}{(s.Down ? "↓" : "↑")}")) + (a.Steps.Count > 24 ? "  …" : "");
 
     // ---- gravação de macro: a janela inteira escuta o teclado ----
 
@@ -290,7 +292,7 @@ public partial class MainWindow : IAssignmentHost
             _recText = text;
             action.Steps.Clear();
             _recClock.Restart();
-            text.Text = "Gravando… digite as teclas.";
+            text.Text = T("Gravando… digite as teclas.");
             PreviewKeyDown += RecordKey;
             PreviewKeyUp += RecordKey;
         }
@@ -301,7 +303,7 @@ public partial class MainWindow : IAssignmentHost
             SaveAssignments();
             AppLog.Ok("PERFIL", $"Macro gravada: {action.Steps.Count(s => s.Down)} teclas");
         }
-        button.Content = _recording ? "PARAR GRAVAÇÃO" : "GRAVAR (DIGITE AS TECLAS)";
+        button.Content = _recording ? T("Parar gravação") : T("Gravar (digite as teclas)");
         button.Style = (Style)FindResource(_recording ? "FlatButton" : "AccentButton");
     }
 
@@ -326,12 +328,12 @@ public partial class MainWindow : IAssignmentHost
     {
         PedalKeysPanel.Children.Clear();
         var p = _config.Active;
-        string[] names = ["EMBREAGEM", "FREIO", "ACELERADOR"];
+        string[] names = [T("EMBREAGEM"), T("FREIO"), T("ACELERADOR")];
         for (int i = 0; i < 3; i++)
         {
             var pk = p.Pedals[i];
-            var on = new CheckBox { Content = $"{names[i]} COMO TECLA", IsChecked = pk.On, Margin = new Thickness(0, 0, 0, 8) };
-            var slider = new SettingSlider { Label = "APERTA A TECLA A PARTIR DE (%)", Minimum = 5, Maximum = 95, Value = pk.Threshold };
+            var on = new CheckBox { Content = T($"{names[i]} COMO TECLA"), IsChecked = pk.On, Margin = new Thickness(0, 0, 0, 8) };
+            var slider = new SettingSlider { Label = T("APERTA A TECLA A PARTIR DE (%)"), Minimum = 5, Maximum = 95, Value = pk.Threshold };
             var cap = new KeyCaptureBox { Value = pk.Keys, Margin = new Thickness(0, 0, 0, 18) };
             on.Click += (_, _) => { pk.On = on.IsChecked == true; _config.Save(); };
             slider.ValueChanged += v => { pk.Threshold = (int)Math.Round(v); _config.Save(); };
@@ -347,10 +349,10 @@ public partial class MainWindow : IAssignmentHost
     {
         SequentialPanel.Children.Clear();
         var seq = _config.Active.Sequential;
-        var on = new CheckBox { Content = "LIGADO NESTE PERFIL", IsChecked = seq.On, Margin = new Thickness(0, 0, 0, 12) };
+        var on = new CheckBox { Content = T("Ligado neste perfil"), IsChecked = seq.On, Margin = new Thickness(0, 0, 0, 12) };
         on.Click += (_, _) => { seq.On = on.IsChecked == true; _config.Save(); _engine?.ReleaseAll(); };
         SequentialPanel.Children.Add(on);
-        foreach (var (label, get, set) in new (string, Func<string>, Action<string>)[] { ("TECLA PARA SUBIR MARCHA", () => seq.Up, v => seq.Up = v), ("TECLA PARA DESCER MARCHA", () => seq.Down, v => seq.Down = v) })
+        foreach (var (label, get, set) in new (string, Func<string>, Action<string>)[] { (T("TECLA PARA SUBIR MARCHA"), () => seq.Up, v => seq.Up = v), (T("TECLA PARA DESCER MARCHA"), () => seq.Down, v => seq.Down = v) })
         {
             SequentialPanel.Children.Add(new TextBlock { Text = label, Style = (Style)FindResource("SettingLabel"), Margin = new Thickness(0, 0, 0, 4) });
             var cap = new KeyCaptureBox { Value = get(), Margin = new Thickness(0, 0, 0, 12) };

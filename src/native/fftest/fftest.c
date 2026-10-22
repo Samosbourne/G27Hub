@@ -38,6 +38,12 @@ typedef struct {
     BOOL found;
 } FindCtx;
 
+static WINBOOL CALLBACK enum_axis_cb(LPCDIDEVICEOBJECTINSTANCEW obj, LPVOID ref) {
+    (void)ref;
+    wprintf(L"eixo instancia %u: %ls (ofs %u)\n", (unsigned)DIDFT_GETINSTANCE(obj->dwType), obj->tszName, (unsigned)obj->dwOfs);
+    return DIENUM_CONTINUE;
+}
+
 /* G27 Hub: "g27fftest <teste> vjoy" testa o volante virtual (Compatibilidade Total) em vez do G27 */
 static DWORD g_product = 0xC29B046D;
 
@@ -286,6 +292,27 @@ int main(void) {
         if (hwnd) DestroyWindow(hwnd);
         if (argv) LocalFree(argv);
         return 3;
+    }
+
+    /* G27 Hub: "axes" lista os eixos (instância DirectInput) e lê os valores 1 s, já com a calibração do Windows aplicada */
+    if (wcscmp(cmd, L"axes") == 0) {
+        IDirectInputDevice8_EnumObjects(dev, enum_axis_cb, NULL, DIDFT_AXIS);
+        IDirectInputDevice8_SetDataFormat(dev, &c_dfDIJoystick2);
+        IDirectInputDevice8_SetCooperativeLevel(dev, hwnd, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
+        IDirectInputDevice8_Acquire(dev);
+        DIJOYSTATE2 js;
+        for (int i = 0; i < 5; i++) {
+            IDirectInputDevice8_Poll(dev);
+            IDirectInputDevice8_GetDeviceState(dev, sizeof(js), &js);
+            wprintf(L"X=%ld Y=%ld Z=%ld Rz=%ld\n", js.lX, js.lY, js.lZ, js.lRz);
+            Sleep(200);
+        }
+        IDirectInputDevice8_Unacquire(dev);
+        IDirectInputDevice8_Release(dev);
+        IDirectInput8_Release(di);
+        if (hwnd) DestroyWindow(hwnd);
+        if (argv) LocalFree(argv);
+        return 0;
     }
 
     DIOBJECTDATAFORMAT of[1];

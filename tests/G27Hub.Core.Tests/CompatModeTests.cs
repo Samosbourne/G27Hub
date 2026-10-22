@@ -84,3 +84,28 @@ public class WheelSpinnerTests
         Assert.True(Math.Abs(s.Step(0, 900, 0.001)) <= s.MaxForce); // força sempre limitada
     }
 }
+
+public class PedalCalibrationTests
+{
+    [Fact]
+    public void Faixa_medida_vira_0_a_100()
+    {
+        var r = new PedalRange(Pressed: 20, Released: 240);
+        Assert.Equal(0, PedalCalibration.Apply(r, new AxisValue(250, 0, 255)));   // solto, mesmo tremendo acima
+        Assert.Equal(1, PedalCalibration.Apply(r, new AxisValue(10, 0, 255)));    // fundo (pedal gasto não chegava a 0)
+        Assert.Equal(0.5, PedalCalibration.Apply(r, new AxisValue(130, 0, 255)), 3);
+        Assert.Equal(1 - 100 / 255.0, PedalCalibration.Apply((PedalRange?)null, new AxisValue(100, 0, 255)), 3); // sem calibração
+    }
+}
+
+public class WheelTestTests
+{
+    [Fact]
+    public void Sequencia_igual_ao_LGS()
+    {
+        var s = WheelTest.Steps(900);
+        Assert.Equal([-445, 445, 0, 445, -445, 0], s.Select(x => x.Target));
+        Assert.Equal([false, false, false, true, true, false], s.Select(x => x.Quick));
+        Assert.All(WheelTest.Steps(270), x => Assert.True(Math.Abs(x.Target) < 135)); // nunca até o batente
+    }
+}

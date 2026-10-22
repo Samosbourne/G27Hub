@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using G27Hub.Core;
 
@@ -18,6 +19,8 @@ public sealed class G27Wheel : UserControl
     readonly Shape[] _leds = new Shape[10];
     readonly Dictionary<int, Shape> _buttons = []; // número do botão → forma no desenho
     readonly Canvas _hotspots = new() { Visibility = Visibility.Collapsed };
+    int _highlight = -1; // botão escolhido na aba Atribuições
+    IReadOnlyCollection<int> _pressed = [];
 
     public event Action<int>? HotspotClicked;
 
@@ -77,7 +80,7 @@ public sealed class G27Wheel : UserControl
         {
             var center = Center(shape);
             var dot = new Grid { Width = 24, Height = 24, Cursor = Cursors.Hand, Tag = num };
-            dot.Children.Add(new Ellipse { Fill = new SolidColorBrush(Color.FromArgb(0xCC, 0, 0, 0)), Stroke = Draw.Hex("#1A9BFF"), StrokeThickness = 2 });
+            dot.Children.Add(new Ellipse { Fill = new SolidColorBrush(Color.FromArgb(0xCC, 0, 0, 0)), Stroke = Draw.Hex("#00D2FF"), StrokeThickness = 2 });
             dot.Children.Add(new TextBlock { Text = num.ToString(), FontSize = 10, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center });
             dot.MouseLeftButtonUp += (_, _) => HotspotClicked?.Invoke(num);
             _hotspots.At(dot, center.X - 12 + (center.X < 200 ? -26 : 26), center.Y - 12);
@@ -122,21 +125,33 @@ public sealed class G27Wheel : UserControl
         for (int i = 0; i < 10; i++) _leds[i].Opacity = (mask >> (i < 5 ? i : 9 - i) & 1) != 0 ? 1 : 0.15;
     }
 
-    /// <summary>Acende (borda azul) os botões apertados no volante físico.</summary>
+    /// <summary>Acende (borda azul) os botões apertados no volante físico e o escolhido na aba Atribuições.</summary>
     public void SetPressed(IReadOnlyCollection<int> pressed)
     {
+        _pressed = pressed;
         foreach (var (num, shape) in _buttons)
         {
             var on = pressed.Contains(num);
-            shape.Stroke = on ? Draw.Hex("#1A9BFF") : num is G27Buttons.PaddleLeft or G27Buttons.PaddleRight ? Draw.Hex("#3A3A3A") : Draw.Hex("#5A0A0A");
-            shape.StrokeThickness = on ? 3.5 : 1;
+            var chosen = num == _highlight && _hotspots.Visibility == Visibility.Visible;
+            shape.Stroke = on || chosen ? Draw.Hex("#00D2FF") : num is G27Buttons.PaddleLeft or G27Buttons.PaddleRight ? Draw.Hex("#3A3A3A") : Draw.Hex("#5A0A0A");
+            shape.StrokeThickness = on ? 3.5 : chosen ? 2.5 : 1;
+            shape.Effect = chosen ? Glow : null;
         }
     }
 
-    /// <summary>Destaca o ponto escolhido na aba Atribuições.</summary>
+    static readonly DropShadowEffect Glow = new() { Color = Color.FromRgb(0x00, 0xD2, 0xFF), BlurRadius = 14, ShadowDepth = 0, Opacity = 0.9 };
+
+    /// <summary>Destaca o ponto escolhido na aba Atribuições (ponto ciano + contorno brilhando no botão do desenho).</summary>
     public void Highlight(int button)
     {
+        _highlight = button;
         foreach (Grid dot in _hotspots.Children)
-            ((Ellipse)dot.Children[0]).Fill = (int)dot.Tag == button ? Draw.Hex("#1A9BFF") : new SolidColorBrush(Color.FromArgb(0xCC, 0, 0, 0));
+        {
+            var chosen = (int)dot.Tag == button;
+            ((Ellipse)dot.Children[0]).Fill = chosen ? Draw.Hex("#00D2FF") : new SolidColorBrush(Color.FromArgb(0xCC, 0, 0, 0));
+            ((TextBlock)dot.Children[1]).Foreground = chosen ? Draw.Hex("#0B0E14") : Brushes.White;
+            dot.Effect = chosen ? Glow : null;
+        }
+        SetPressed(_pressed);
     }
 }

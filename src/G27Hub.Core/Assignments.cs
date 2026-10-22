@@ -25,13 +25,13 @@ public sealed class ButtonAction
 
     public string Summary(AppConfig? cfg = null) => Kind switch
     {
-        ActionKind.Key => Keys,
-        ActionKind.Macro => $"Macro ({Steps.Count(s => s.Down)} teclas{Mode switch { MacroMode.RepeatWhileHeld => ", repete", MacroMode.Toggle => ", liga/desliga", _ => "" }})",
-        ActionKind.Media => Media,
-        ActionKind.Program => $"Abrir {System.IO.Path.GetFileNameWithoutExtension(Path)}",
+        ActionKind.Key => KeyNames.Display(Keys),
+        ActionKind.Macro => Lang.T($"Macro ({Steps.Count(s => s.Down)} teclas") + Mode switch { MacroMode.RepeatWhileHeld => Lang.T(", repete"), MacroMode.Toggle => Lang.T(", liga/desliga"), _ => "" } + ")",
+        ActionKind.Media => Lang.T(Media),
+        ActionKind.Program => Lang.T($"Abrir {System.IO.Path.GetFileNameWithoutExtension(Path)}"),
         ActionKind.Website => Url,
-        ActionKind.Profile => $"Perfil: {cfg?.Profiles.FirstOrDefault(p => p.Id == ProfileId)?.Name ?? "?"}",
-        _ => "Padrão",
+        ActionKind.Profile => Lang.T($"Perfil: {cfg?.Profiles.FirstOrDefault(p => p.Id == ProfileId)?.Name ?? "?"}"),
+        _ => Lang.T("Padrão"),
     };
 }
 

@@ -49,6 +49,14 @@ static int Run(string[] a)
         case "monitor":
             return Monitor();
 
+        case "wheeltest":
+            return WithDevice(d =>
+            {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var done = WheelTest.Run(d, () => false, s => Console.WriteLine($"{sw.ElapsedMilliseconds,6} ms  {s}  (ângulo {d.State?.Angle:0}°)"));
+                Console.WriteLine($"{sw.ElapsedMilliseconds,6} ms  {(done ? "fim" : "interrompido")}, ângulo final {d.State?.Angle:0.0}°");
+            });
+
         case "spin" when a.Length > 1 && double.TryParse(a[1], out var target):
             return WithDevice(d => Spin(d, target, a.Skip(2).Select(double.Parse).ToArray()));
 

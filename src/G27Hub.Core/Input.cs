@@ -23,6 +23,9 @@ public static class KeyNames
 
     static readonly Dictionary<int, string> ByVk = ByName.GroupBy(kv => kv.Value).ToDictionary(g => g.Key, g => g.First().Key);
 
+    /// <summary>Nome para mostrar (no idioma da interface); "Ctrl+Espaço" continua sendo o que fica salvo.</summary>
+    public static string Display(string combo) => string.Join("+", combo.Split('+').Select(Lang.T));
+
     public static readonly string[] Media = ["Play/Pausa", "Próxima", "Anterior", "Parar", "Volume+", "Volume-", "Mudo"];
 
     public static string Name(int vk) =>

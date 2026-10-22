@@ -33,12 +33,12 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="B" BorderBrush="#333" BorderThickness="1" CornerRadius="10" Padding="9,2">
+                        <Border x:Name="B" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="10" Padding="9,2">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="B" Property="Background" Value="#1A1A1A"/>
+                                <Setter TargetName="B" Property="Background" Value="#141923"/>
                                 <Setter TargetName="B" Property="BorderBrush" Value="#555"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="False">
@@ -50,7 +50,7 @@
             </Setter>
         </Style>
         <Style x:Key="Dropdown" TargetType="Border">
-            <Setter Property="Background" Value="#2A2A2A"/>
+            <Setter Property="Background" Value="#232B3A"/>
             <Setter Property="CornerRadius" Value="2"/>
             <Setter Property="Padding" Value="10,7"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -110,10 +110,21 @@
                 <Button Style="{StaticResource IconButton}" ToolTip="Conta">
                     <TextBlock Text="&#xE77B;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
+                <Button x:Name="LangButton" Style="{StaticResource IconButton}" ToolTip="Idioma / Language" Click="Lang_Click">
+                    <TextBlock Text="&#xE774;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Popup x:Name="LangPopup" PlacementTarget="{Binding ElementName=LangButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6" HorizontalOffset="-120">
+                    <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="6">
+                        <StackPanel Width="150">
+                            <Button Style="{StaticResource MenuEntry}" Content="Português" Tag="pt" Click="LangPick_Click"/>
+                            <Button Style="{StaticResource MenuEntry}" Content="English" Tag="en" Click="LangPick_Click"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
                 <Button x:Name="AppSettingsButton" Style="{StaticResource IconButton}" ToolTip="Configurações do app" Click="AppSettings_Click">
                     <TextBlock Text="&#xE713;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
-                <Rectangle Width="1" Height="18" Fill="#2A2A2A" Margin="8,0"/>
+                <Rectangle Width="1" Height="18" Fill="#232B3A" Margin="8,0"/>
                 <Button Style="{StaticResource IconButton}" Width="46" Click="Minimize_Click">
                     <TextBlock Text="&#xE921;" Style="{StaticResource Icon}" FontSize="10" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
@@ -126,55 +137,56 @@
             </StackPanel>
 
             <Popup x:Name="ProfilePopup" PlacementTarget="{Binding ElementName=ProfileButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6">
-                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="6" Width="300">
+                <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="6" Width="300">
                     <StackPanel>
                         <TextBlock Text="PERFIS" Style="{StaticResource SettingLabel}" Margin="8,4,0,6"/>
                         <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
                             <StackPanel x:Name="ProfileList"/>
                         </ScrollViewer>
-                        <Rectangle Height="1" Fill="#333" Margin="0,6"/>
-                        <CheckBox x:Name="LockCheckPopup" Content="TRAVAR NESTE PERFIL (SEM TROCA AUTOMÁTICA)" Margin="8,4,8,8" Click="LockToggle_Click"/>
-                        <Button Style="{StaticResource LinkButton}" Content="+  ADICIONAR JOGO (.EXE)" Margin="8,4,0,6" Click="AddGame_Click"/>
-                        <Button Style="{StaticResource LinkButton}" Content="PROCURAR JOGOS INSTALADOS" Margin="8,4,0,6" Click="FindInstalled_Click"/>
-                        <Button Style="{StaticResource LinkButton}" Content="IMPORTAR PERFIL (.G27PROFILE)" Margin="8,4,0,6" Click="ImportProfile_Click"/>
+                        <Rectangle Height="1" Fill="#2E3A4F" Margin="0,6"/>
+                        <CheckBox x:Name="LockCheckPopup" Content="Travar neste perfil (sem troca automática)" Margin="8,4,8,8" Click="LockToggle_Click"/>
+                        <Button Style="{StaticResource LinkButton}" Content="+  Adicionar jogo (.exe)" Margin="8,4,0,6" Click="AddGame_Click"/>
+                        <Button Style="{StaticResource LinkButton}" Content="Procurar jogos instalados" Margin="8,4,0,6" Click="FindInstalled_Click"/>
+                        <Button Style="{StaticResource LinkButton}" Content="Importar perfil (.g27profile)" Margin="8,4,0,6" Click="ImportProfile_Click"/>
                     </StackPanel>
                 </Border>
             </Popup>
             <Popup x:Name="MenuPopup" PlacementTarget="{Binding ElementName=MenuButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6">
-                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="6" Width="230">
+                <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="6" Width="230">
                     <StackPanel>
                         <Button Style="{StaticResource MenuEntry}" Content="Jogos e apps (perfis)" Click="MenuProfiles_Click"/>
                         <Button Style="{StaticResource MenuEntry}" Content="Configurações" Click="MenuSettings_Click"/>
                         <Button Style="{StaticResource MenuEntry}" Content="Console de diagnóstico" Click="MenuConsole_Click"/>
+                        <Button Style="{StaticResource MenuEntry}" Content="Assistente de configuração" Click="MenuWizard_Click"/>
                         <Button Style="{StaticResource MenuEntry}" Content="Sobre o G27 Hub" Click="MenuAbout_Click"/>
                     </StackPanel>
                 </Border>
             </Popup>
             <Popup x:Name="DevicePopup" Placement="MousePoint" StaysOpen="False" AllowsTransparency="True">
-                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="16" Width="300">
+                <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="16" Width="300">
                     <StackPanel>
                         <TextBlock Text="CONFIGURAÇÕES DO G27" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
-                        <TextBlock x:Name="DeviceInfo" Style="{StaticResource Hint}" Foreground="#D8D8D8" Margin="0,0,0,14"/>
+                        <TextBlock x:Name="DeviceInfo" Style="{StaticResource Hint}" Foreground="#CBD5E1" Margin="0,0,0,14"/>
                         <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,8"/>
-                        <RadioButton x:Name="ModeStandard" GroupName="Mode" Content="PADRÃO (O JOGO VÊ O G27)" IsChecked="True" Margin="0,0,0,8" Click="Mode_Click"/>
-                        <RadioButton x:Name="ModeCompat" GroupName="Mode" Content="COMPATIBILIDADE TOTAL (O JOGO VÊ UM VOLANTE VIRTUAL)" Margin="0,0,0,16" Click="Mode_Click"
+                        <RadioButton x:Name="ModeStandard" GroupName="Mode" Content="Padrão (o jogo vê o G27)" IsChecked="True" Margin="0,0,0,8" Click="Mode_Click"/>
+                        <RadioButton x:Name="ModeCompat" GroupName="Mode" Content="Compatibilidade Total (o jogo vê um volante virtual)" Margin="0,0,0,16" Click="Mode_Click"
                                      ToolTip="Para jogos sem suporte ao G27. Esconde o G27 dos jogos e cria o &quot;vJoy Device&quot; com sensibilidade e pedais combinados."/>
-                        <Button Style="{StaticResource FlatButton}" Content="TESTAR LEDS" Margin="0,0,0,8" Click="TestLeds_Click"/>
-                        <Button Style="{StaticResource FlatButton}" Content="REAPLICAR MODO NATIVO E ROTAÇÃO" Margin="0,0,0,8" Click="Reapply_Click"/>
-                        <Button Style="{StaticResource FlatButton}" Content="CALIBRAÇÃO (FASE 9)" IsEnabled="False"/>
+                        <Button Style="{StaticResource FlatButton}" Content="Testar LEDs" Margin="0,0,0,8" Click="TestLeds_Click"/>
+                        <Button Style="{StaticResource FlatButton}" Content="Reaplicar modo nativo e rotação" Margin="0,0,0,8" Click="Reapply_Click"/>
+                        <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Click="Calibrate_Click"/>
                     </StackPanel>
                 </Border>
             </Popup>
             <Popup x:Name="AppSettingsPopup" PlacementTarget="{Binding ElementName=AppSettingsButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" VerticalOffset="6" HorizontalOffset="-240">
-                <Border Background="#202020" BorderBrush="#333" BorderThickness="1" CornerRadius="4" Padding="16" Width="290">
+                <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="16" Width="290">
                     <StackPanel>
                         <TextBlock Text="CONFIGURAÇÕES DO APP" Style="{StaticResource SettingLabel}" Margin="0,0,0,12"/>
-                        <CheckBox x:Name="StartWithWindowsCheck" Content="INICIAR COM O WINDOWS (NA BANDEJA)" Margin="0,0,0,10" Click="StartWithWindows_Click"/>
-                        <CheckBox x:Name="CloseToTrayCheck" Content="O X FECHA PARA A BANDEJA (O VOLANTE CONTINUA CONFIGURADO)" Margin="0,0,0,10" Click="CloseToTray_Click"/>
-                        <CheckBox x:Name="NotificationsCheck" Content="NOTIFICAÇÕES (ERROS SEMPRE APARECEM)" Margin="0,0,0,10" Click="Notifications_Click"/>
-                        <CheckBox x:Name="DetectorCheck" Content="DETECTOR INTELIGENTE DE JOGOS (AVISOS DE COMPATIBILIDADE AO ABRIR UM JOGO)" Margin="0,0,0,10" Click="DetectorCheck_Click"
+                        <CheckBox x:Name="StartWithWindowsCheck" Content="Iniciar com o Windows (na bandeja)" Margin="0,0,0,10" Click="StartWithWindows_Click"/>
+                        <CheckBox x:Name="CloseToTrayCheck" Content="O X fecha para a bandeja (o volante continua configurado)" Margin="0,0,0,10" Click="CloseToTray_Click"/>
+                        <CheckBox x:Name="NotificationsCheck" Content="Notificações (erros sempre aparecem)" Margin="0,0,0,10" Click="Notifications_Click"/>
+                        <CheckBox x:Name="DetectorCheck" Content="Detector inteligente de jogos (avisos de compatibilidade ao abrir um jogo)" Margin="0,0,0,10" Click="DetectorCheck_Click"
                                   ToolTip="Ao abrir um jogo conhecido: compatibilidade, modo recomendado, controle de Xbox, Steam Input, rotação sugerida; ao fechar, pergunta se funcionou. Desligado de fábrica."/>
-                        <CheckBox x:Name="LockCheckSettings" Content="PERFIL PERSISTENTE: TRAVAR O PERFIL ATUAL" Click="LockToggle_Click"/>
+                        <CheckBox x:Name="LockCheckSettings" Content="Perfil persistente: travar o perfil atual" Click="LockToggle_Click"/>
                         <TextBlock Text="MODO COMPATIBILIDADE TOTAL (OPCIONAL)" Style="{StaticResource SettingLabel}" Margin="0,20,0,8"/>
                         <TextBlock x:Name="CompatStatusText" Style="{StaticResource Hint}"/>
                         <Button x:Name="CompatButton" Style="{StaticResource FlatButton}" Margin="0,10,0,0" Click="Compat_Click"/>
@@ -199,10 +211,10 @@
             <Grid x:Name="DevicesScreen" Visibility="Collapsed">
                 <!-- jogo reconhecido agora (discreto, canto inferior esquerdo) -->
                 <Border x:Name="GameBadge" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24" Padding="12,7"
-                        CornerRadius="14" Background="#141414" BorderBrush="#2A2A2A" BorderThickness="1" Visibility="Collapsed">
+                        CornerRadius="14" Background="#111621" BorderBrush="#232B3A" BorderThickness="1" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <Ellipse Width="7" Height="7" Fill="{StaticResource Ok}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="GameBadgeText" FontSize="12" Foreground="#CFCFCF" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="GameBadgeText" FontSize="12" Foreground="#CBD5E1" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,24,0">
@@ -296,7 +308,7 @@
                     <!-- ===== Volante ===== -->
                     <Grid Tag="volante">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
@@ -305,18 +317,21 @@
                                     <TextBlock Text="Volante" Style="{StaticResource SectionTitle}"/>
                                     <TextBlock x:Name="LockVolante" Text="&#xE785;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13" Cursor="Hand" MouseLeftButtonUp="LockToggle_Click" ToolTip="Travar este perfil (sem troca automática de perfil)"/>
                                 </Grid>
-                                <CheckBox x:Name="UseOwnVolante" Content="USAR CONFIGURAÇÕES ESPECIAIS DO VOLANTE NESTE PERFIL" Margin="0,0,0,8" Click="UseOwn_Click" Visibility="Collapsed"/>
+                                <CheckBox x:Name="UseOwnVolante" Content="Usar configurações especiais do volante neste perfil" Margin="0,0,0,8" Click="UseOwn_Click" Visibility="Collapsed"/>
                                 <TextBlock x:Name="InheritHintVolante" Style="{StaticResource Hint}" Margin="0,0,0,18" Visibility="Collapsed"
                                            Text="Este perfil usa as configurações do Desktop: Padrão. Mexer aqui muda o Desktop."/>
-                                <c:SettingSlider x:Name="SteerSensSlider" Label="SENSIBILIDADE" Value="50" ToolTipService.ShowOnDisabled="True"
+                                <c:SettingSlider x:Name="SteerSensSlider" Label="Sensibilidade" Value="50" ToolTipService.ShowOnDisabled="True"
                                                  ToolTip="Só no Modo Compatibilidade Total. 50 = linear; menos = mais suave no centro; mais = mais rápido no centro."/>
-                                <c:SettingSlider x:Name="RangeSlider" Label="LIMITES OPERACIONAIS (ÂNGULO)" Minimum="40" Maximum="900" Value="900"/>
-                                <c:SettingSlider x:Name="AutocenterSlider" Label="CENTRALIZAÇÃO DA FORÇA DA MOLA" Value="20"/>
-                                <CheckBox x:Name="AutocenterCheck" Content="MOLA CENTRALIZADORA PARA JOGOS SEM FEEDBACK DE FORÇA" Margin="0,4,0,24"
+                                <c:SettingSlider x:Name="RangeSlider" Label="Limites operacionais (ângulo)" Minimum="40" Maximum="900" Value="900" Unit="°"/>
+                                <c:SettingSlider x:Name="AutocenterSlider" Label="Centralização da força da mola" Value="20"/>
+                                <CheckBox x:Name="AutocenterCheck" Content="Mola centralizadora para jogos sem feedback de força" Margin="0,4,0,24"
                                           ToolTip="Mola do próprio volante. Jogos com force feedback desligam a mola enquanto estão abertos."/>
-                                <CheckBox x:Name="RotationShortcutCheck" Content="ATALHO NO VOLANTE: SEGURE OS DOIS VERMELHOS DE CIMA PARA ALTERNAR 180 / 270 / 540 / 900°" Margin="0,0,0,24" Click="RotationShortcut_Click"/>
-                                <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreWheel_Click"/>
-                                <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
+                                <CheckBox x:Name="RotationShortcutCheck" Content="Atalho no volante: segure os dois vermelhos de cima para alternar 180 / 270 / 540 / 900°" Margin="0,0,0,24" Click="RotationShortcut_Click"/>
+                                <Button x:Name="WheelTestButton" Style="{StaticResource FlatButton}" Content="Testar volante" Margin="0,0,0,6" Click="WheelTest_Click"
+                                        ToolTip="Como no LGS: gira devagar até o fim para a esquerda e para a direita, volta ao centro, depois vai de uma vez para cada lado. Solte o volante."/>
+                                <TextBlock x:Name="WheelTestStatus" Style="{StaticResource Hint}" Margin="0,0,0,14"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Restaurar a configuração original" Click="RestoreWheel_Click"/>
+                                <Border Background="#1B2230" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
                                     <TextBlock Style="{StaticResource Hint}">
                                         <Run Text="Modo Padrão" Foreground="White" FontWeight="SemiBold"/><Run x:Name="VolanteModeHint" Text=": o jogo vê o G27 de verdade. A sensibilidade só existe no Modo Compatibilidade Total."/>
                                     </TextBlock>
@@ -338,7 +353,7 @@
                     <!-- ===== Pedais ===== -->
                     <Grid Tag="pedais" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
@@ -347,16 +362,19 @@
                                     <TextBlock Text="Pedais" Style="{StaticResource SectionTitle}"/>
                                     <TextBlock x:Name="LockPedais" Text="&#xE785;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13" Cursor="Hand" MouseLeftButtonUp="LockToggle_Click" ToolTip="Travar este perfil (sem troca automática de perfil)"/>
                                 </Grid>
-                                <c:SettingSlider x:Name="ClutchSensSlider" Label="SENSIBILIDADE DA EMBREAGEM" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
-                                <c:SettingSlider x:Name="BrakeSensSlider" Label="SENSIBILIDADE DO FREIO" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
-                                <c:SettingSlider x:Name="ThrottleSensSlider" Label="SENSIBILIDADE DO ACELERADOR" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <c:SettingSlider x:Name="ClutchSensSlider" Label="Sensibilidade da embreagem" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <c:SettingSlider x:Name="BrakeSensSlider" Label="Sensibilidade do freio" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
+                                <c:SettingSlider x:Name="ThrottleSensSlider" Label="Sensibilidade do acelerador" Value="50" ToolTipService.ShowOnDisabled="True" ToolTip="Só no Modo Compatibilidade Total"/>
                                 <TextBlock Text="PEDAIS COMBINADOS" Style="{StaticResource SettingLabel}" Margin="0,4,0,4"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,24" Text="No Modo Compatibilidade Total o volante virtual já traz os dois jeitos: pedais separados (eixos Y, Z e Rx) e combinados, acelerador menos freio (eixo Ry). Escolha no jogo."/>
-                                <Button Style="{StaticResource FlatButton}" Content="CALIBRAR PEDAIS" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Assistente de calibração: Fase 9"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Click="Calibrate_Click"
+                                        ToolTip="Mede até onde cada pedal vai e grava no Windows: todos os jogos passam a ler 0 a 100% certinho"/>
+                                <TextBlock x:Name="CalibStatus" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
+                                <Button x:Name="CalibClearButton" Style="{StaticResource FlatButton}" Content="Remover calibração" Margin="0,8,0,0" Click="CalibClear_Click"/>
                                 <TextBlock Text="PEDAL COMO TECLA" Style="{StaticResource SettingLabel}" Margin="0,24,0,4"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12" Text="Ex.: embreagem como freio de mão em jogos de rally. Vale para o perfil ativo."/>
                                 <StackPanel x:Name="PedalKeysPanel"/>
-                                <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
+                                <Border Background="#1B2230" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
                                     <TextBlock x:Name="PedaisModeHint" Style="{StaticResource Hint}" Text="Sensibilidade dos pedais só no Modo Compatibilidade Total. Pedais combinados no Modo Padrão usam o modo antigo (Driving Force EX) e o jogo perde a embreagem."/>
                                 </Border>
                             </StackPanel>
@@ -376,7 +394,7 @@
                     <!-- ===== Força ===== -->
                     <Grid Tag="forca" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
@@ -385,28 +403,31 @@
                                     <TextBlock Text="Força" Style="{StaticResource SectionTitle}"/>
                                     <TextBlock x:Name="LockForca" Text="&#xE785;" Style="{StaticResource Icon}" Foreground="{StaticResource TextFaint}" HorizontalAlignment="Right" FontSize="13" Cursor="Hand" MouseLeftButtonUp="LockToggle_Click" ToolTip="Travar este perfil (sem troca automática de perfil)"/>
                                 </Grid>
-                                <CheckBox x:Name="UseOwnForca" Content="USAR CONFIGURAÇÕES ESPECIAIS DO VOLANTE NESTE PERFIL" Margin="0,0,0,8" Click="UseOwn_Click" Visibility="Collapsed"/>
+                                <CheckBox x:Name="UseOwnForca" Content="Usar configurações especiais do volante neste perfil" Margin="0,0,0,8" Click="UseOwn_Click" Visibility="Collapsed"/>
                                 <TextBlock x:Name="InheritHintForca" Style="{StaticResource Hint}" Margin="0,0,0,18" Visibility="Collapsed"
                                            Text="Este perfil usa as configurações do Desktop: Padrão. Mexer aqui muda o Desktop."/>
-                                <CheckBox x:Name="FfbEnabled" Content="ATIVAR FORCE FEEDBACK" IsChecked="True" Margin="0,0,0,20"
+                                <CheckBox x:Name="FfbEnabled" Content="Ativar force feedback" IsChecked="True" Margin="0,0,0,20"
                                           ToolTip="Registra (ou remove) o driver de força do G27 Hub. Reabra o jogo depois de mudar."/>
-                                <c:SettingSlider x:Name="GainSlider" Label="INTENSIDADE GLOBAL" Value="100"/>
-                                <c:SettingSlider x:Name="MinForceSlider" Label="FORÇA MÍNIMA (ZONA MORTA DO CENTRO)" Maximum="30" Value="0"
+                                <c:SettingSlider x:Name="GainSlider" Label="Intensidade global" Value="100"/>
+                                <c:SettingSlider x:Name="MinForceSlider" Label="Força mínima (zona morta do centro)" Maximum="30" Value="0"
                                                  ToolTip="O G27 não sente forças muito pequenas perto do centro. Suba aos poucos (5–10%) até sentir os detalhes sem o volante tremer parado."/>
-                                <c:SettingSlider x:Name="SpringSlider" Label="INTENSIDADE DA MOLA" Value="100"/>
-                                <c:SettingSlider x:Name="DamperSlider" Label="INTENSIDADE DO AMORTECIMENTO" Value="100"/>
-                                <CheckBox x:Name="CenterCheck" Content="FORÇA CENTRAL" Margin="0,4,0,12"
+                                <c:SettingSlider x:Name="SpringSlider" Label="Intensidade da mola" Value="100"/>
+                                <c:SettingSlider x:Name="DamperSlider" Label="Intensidade do amortecimento" Value="100"/>
+                                <CheckBox x:Name="CenterCheck" Content="Força central" Margin="0,4,0,12"
                                           ToolTip="Mola extra somada ao force feedback do jogo"/>
-                                <c:SettingSlider x:Name="CenterSlider" Label="INTENSIDADE DA FORÇA CENTRAL" Value="20"/>
-                                <CheckBox x:Name="AllowGameCheck" Content="PERMITIR QUE O JOGO AJUSTE CONFIGURAÇÕES" IsChecked="True" Margin="0,4,0,14"
+                                <c:SettingSlider x:Name="CenterSlider" Label="Intensidade da força central" Value="20" IsEnabled="{Binding IsChecked, ElementName=CenterCheck}"/>
+                                <CheckBox x:Name="AllowGameCheck" Content="Permitir que o jogo ajuste configurações" IsChecked="True" Margin="0,4,0,14"
                                           ToolTip="Ligado: o jogo pode baixar a intensidade geral do force feedback pelas opções dele. Desligado: vale só a INTENSIDADE GLOBAL daqui."/>
-                                <CheckBox x:Name="InvertCheck" Content="INVERTER FORÇA" Margin="0,0,0,24"
+                                <CheckBox x:Name="InvertCheck" Content="Inverter força" Margin="0,0,0,24"
                                           ToolTip="O padrão já é o mesmo sentido do LGS (como os jogos foram ajustados). Marque só se um jogo empurrar o volante para o batente em vez de voltar ao centro."/>
-                                <Button Style="{StaticResource AccentButton}" Content="TESTE AUTOMÁTICO DE FORCE FEEDBACK" Click="StartFfbTest_Click" Margin="0,0,0,10"
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <Button Style="{StaticResource FlatButton}" Content="Teste automático" Click="StartFfbTest_Click"
                                         ToolTip="Pista 3D de ~27 s: o carro anda sozinho por zebra, lombadas, grama, terra e uma batida. Segure o volante."/>
-                                <Button Style="{StaticResource AccentButton}" Content="DIREÇÃO LIVRE (VOCÊ DIRIGE)" Click="StartFreeDrive_Click" Margin="0,0,0,10"
+                                    <Button Grid.Column="2" Style="{StaticResource FlatButton}" Content="Direção livre" Click="StartFreeDrive_Click"
                                         ToolTip="Pista infinita: volante para virar, acelerador e freio nos pedais. Lombadas, buracos, cones, terra e zebras. ESC sai."/>
-                                <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreFfb_Click"/>
+                                </Grid>
+                                <Button Style="{StaticResource FlatButton}" Content="Restaurar a configuração original" Click="RestoreFfb_Click"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,18,0,0" Text="Os ajustes valem na hora, até com o jogo aberto."/>
                             </StackPanel>
                         </ScrollViewer>
@@ -415,38 +436,47 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
-                                <StackPanel Margin="0,0,60,0">
-                                    <TextBlock Text="FORÇA ATUAL" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="ForceNow" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Margin="0,0,60,0">
-                                    <TextBlock Text="CLIPPING (ÚLTIMOS 10 s)" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="ClipNow" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Text="JOGO" Style="{StaticResource SettingLabel}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="GameName" Text="nenhum" FontSize="20" FontWeight="SemiBold" Margin="0,7,0,0" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Viewbox Grid.Row="1" VerticalAlignment="Top">
-                                <Canvas x:Name="ForceGraph" Width="680" Height="280"/>
-                            </Viewbox>
+                            <!-- indicadores em cartões; gráfico num cartão com as faixas de clipping em vermelho -->
+                            <UniformGrid Columns="3" Margin="0,0,0,16">
+                                <Border Style="{StaticResource KpiCard}" Margin="0,0,8,0">
+                                    <StackPanel>
+                                        <TextBlock Text="FORÇA ATUAL" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock x:Name="ForceNow" Text="—" FontSize="28" FontWeight="SemiBold" Margin="0,6,0,0" Typography.NumeralAlignment="Tabular"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource KpiCard}" Margin="4,0,4,0">
+                                    <StackPanel>
+                                        <TextBlock Text="CLIPPING (ÚLTIMOS 10 s)" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock x:Name="ClipNow" Text="—" FontSize="28" FontWeight="SemiBold" Margin="0,6,0,0" Typography.NumeralAlignment="Tabular"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource KpiCard}" Margin="8,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="JOGO" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock x:Name="GameName" Text="nenhum" FontSize="20" FontWeight="SemiBold" Margin="0,11,0,0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                            <Border Grid.Row="1" Style="{StaticResource KpiCard}" Padding="16" VerticalAlignment="Top">
+                                <Viewbox>
+                                    <Canvas x:Name="ForceGraph" Width="680" Height="280" ClipToBounds="True"/>
+                                </Viewbox>
+                            </Border>
                         </Grid>
                     </Grid>
 
                     <!-- ===== Câmbio ===== -->
                     <Grid Tag="cambio" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
                             <StackPanel Margin="22,20,22,22">
                                 <TextBlock Text="Câmbio" Style="{StaticResource SectionTitle}" Margin="0,0,0,22"/>
                                 <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Shift" Content="H (6 MARCHAS + RÉ)" IsChecked="True" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Shift" Content="SEQUENCIAL" Margin="0,0,0,22"/>
+                                <RadioButton GroupName="Shift" Content="H (6 marchas + ré)" IsChecked="True" Margin="0,0,0,10"/>
+                                <RadioButton GroupName="Shift" Content="Sequencial" Margin="0,0,0,22"/>
                                 <TextBlock Style="{StaticResource Hint}" Text="No G27, o modo sequencial é ligado empurrando a manopla para baixo e girando o anel. O app só mostra o modo atual."/>
                                 <TextBlock Text="CÂMBIO H COMO SEQUENCIAL (TECLAS)" Style="{StaticResource SettingLabel}" Margin="0,24,0,4"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12" Text="Para jogos que só aceitam marcha acima/abaixo: engatar no H manda as teclas até chegar na marcha. Ponto morto é ignorado. Vale para o perfil ativo."/>
@@ -469,28 +499,31 @@
                     <!-- ===== LEDs ===== -->
                     <Grid Tag="leds" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
                             <StackPanel Margin="22,20,22,22">
-                                <TextBlock Text="LEDs de RPM" Style="{StaticResource SectionTitle}" Margin="0,0,0,22"/>
-                                <CheckBox x:Name="LedOnCheck" Content="ACENDER OS LEDS COM A RPM DO JOGO" Margin="0,0,0,22" Click="LedSetting_Click"/>
+                                <DockPanel Margin="0,0,0,22">
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Content="Testar LEDs" Click="TestLeds_Click" VerticalAlignment="Center"
+                                            ToolTip="Simula uma acelerada até o corte de giro, com o modo e os limites escolhidos"/>
+                                    <TextBlock Text="LEDs de RPM" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <CheckBox x:Name="LedOnCheck" Content="Acender os LEDs com a RPM do jogo" Margin="0,0,0,22" Click="LedSetting_Click"/>
                                 <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
-                                <RadioButton x:Name="LedModeProgressive" GroupName="Led" Content="PROGRESSIVO" Margin="0,0,0,10" Click="LedSetting_Click"/>
-                                <RadioButton x:Name="LedModeShift" GroupName="Led" Content="PONTO DE TROCA (PISCA)" Margin="0,0,0,10" Click="LedSetting_Click"/>
-                                <RadioButton x:Name="LedModeLimiter" GroupName="Led" Content="LIMITADOR" Margin="0,0,0,8" Click="LedSetting_Click"/>
+                                <RadioButton x:Name="LedModeProgressive" GroupName="Led" Content="Progressivo" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <RadioButton x:Name="LedModeShift" GroupName="Led" Content="Ponto de troca (pisca)" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <RadioButton x:Name="LedModeLimiter" GroupName="Led" Content="Limitador" Margin="0,0,0,8" Click="LedSetting_Click"/>
                                 <TextBlock x:Name="LedModeHint" Style="{StaticResource Hint}" Margin="0,0,0,22"/>
-                                <c:SettingSlider x:Name="LedT1" Label="LED 1 ACENDE EM (% DA RPM)" Value="75"/>
-                                <c:SettingSlider x:Name="LedT2" Label="LED 2" Value="80"/>
-                                <c:SettingSlider x:Name="LedT3" Label="LED 3" Value="85"/>
-                                <c:SettingSlider x:Name="LedT4" Label="LED 4" Value="90"/>
-                                <c:SettingSlider x:Name="LedT5" Label="LED 5 = PONTO DE TROCA" Value="95"/>
-                                <CheckBox x:Name="LedGameCheck" Content="PERMITIR QUE OS JOGOS CONTROLEM OS LEDS (LUZ DE TROCA DO PRÓPRIO JOGO)" Margin="0,4,0,10" Click="LedSetting_Click"/>
-                                <CheckBox x:Name="LedPitCheck" Content="PISCAR COM O LIMITADOR DE BOX" Margin="0,0,0,10" Click="LedSetting_Click"/>
-                                <CheckBox x:Name="LedFuelCheck" Content="AVISAR COMBUSTÍVEL BAIXO (O LED DE FORA PISCA)" Margin="0,0,0,24" Click="LedSetting_Click"/>
-                                <Button Style="{StaticResource AccentButton}" Content="TESTAR LEDS" Click="TestLeds_Click" ToolTip="Simula uma acelerada até o corte de giro, com o modo e os limites acima"/>
-                                <TextBlock Text="TELEMETRIA DOS JOGOS" Style="{StaticResource SettingLabel}" Margin="0,28,0,8"/>
+                                <c:SettingSlider x:Name="LedT1" Dot="#10B981" Label="LED 1 acende em (% da RPM)" Value="75"/>
+                                <c:SettingSlider x:Name="LedT2" Dot="#10B981" Label="LED 2" Value="80"/>
+                                <c:SettingSlider x:Name="LedT3" Dot="#F59E0B" Label="LED 3" Value="85"/>
+                                <c:SettingSlider x:Name="LedT4" Dot="#F59E0B" Label="LED 4" Value="90"/>
+                                <c:SettingSlider x:Name="LedT5" Dot="#EF4444" Label="LED 5 = ponto de troca" Value="95"/>
+                                <CheckBox x:Name="LedGameCheck" Content="Permitir que os jogos controlem os LEDs (luz de troca do próprio jogo)" Margin="0,4,0,10" Click="LedSetting_Click"/>
+                                <CheckBox x:Name="LedPitCheck" Content="Piscar com o limitador de box" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <CheckBox x:Name="LedFuelCheck" Content="Avisar combustível baixo (o LED de fora pisca)" Margin="0,0,0,24" Click="LedSetting_Click"/>
+                                <TextBlock Text="TELEMETRIA DOS JOGOS" Style="{StaticResource SettingLabel}" Margin="0,4,0,8"/>
                                 <StackPanel x:Name="BeamNgTelemetryPanel">
                                     <TextBlock x:Name="BeamNgTelemetryText" Style="{StaticResource Hint}"/>
                                     <Button x:Name="BeamNgTelemetryButton" Style="{StaticResource FlatButton}" Margin="0,8,0,16" Click="BeamNgTelemetry_Click"/>
@@ -518,20 +551,20 @@
                     <!-- ===== Atribuições ===== -->
                     <Grid Tag="atribuicoes" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
                             <StackPanel Margin="22,20,22,22">
                                 <TextBlock Text="Atribuições" Style="{StaticResource SectionTitle}" Margin="0,0,0,14"/>
-                                <CheckBox x:Name="AssignOnCheck" Content="ATRIBUIÇÕES LIGADAS NESTE PERFIL" Margin="0,0,0,8" Click="AssignOn_Click"/>
+                                <CheckBox x:Name="AssignOnCheck" Content="Atribuições ligadas neste perfil" Margin="0,0,0,8" Click="AssignOn_Click"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,14"
                                            Text="O jogo continua vendo o botão. Use botões que o jogo não usa, ou desligue as atribuições no perfil do jogo. Com o G27 Hub em foco elas ficam pausadas: teste no Bloco de Notas."/>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                                    <RadioButton x:Name="LayerNormal" GroupName="Layer" Content="CAMADA NORMAL" IsChecked="True" Margin="0,0,16,0" Click="Layer_Click"/>
-                                    <RadioButton x:Name="LayerShift" GroupName="Layer" Content="CAMADA SHIFT" Click="Layer_Click"/>
+                                    <RadioButton x:Name="LayerNormal" GroupName="Layer" Content="Camada normal" IsChecked="True" Margin="0,0,16,0" Click="Layer_Click"/>
+                                    <RadioButton x:Name="LayerShift" GroupName="Layer" Content="Camada shift" Click="Layer_Click"/>
                                 </StackPanel>
-                                <Border Background="#191919" CornerRadius="3" Padding="12" Margin="0,0,0,16">
+                                <Border Background="#1B2230" CornerRadius="3" Padding="12" Margin="0,0,0,16">
                                     <StackPanel x:Name="AssignEditor"/>
                                 </Border>
                                 <StackPanel x:Name="AssignList" Margin="-22,0,-22,0"/>
@@ -554,7 +587,7 @@
                     <!-- ===== Teste e calibração ===== -->
                     <Grid Tag="teste" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="328"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
@@ -562,10 +595,9 @@
                                 <TextBlock Text="Teste e calibração" Style="{StaticResource SectionTitle}" Margin="0,0,0,18"/>
                                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,22"
                                            Text="Tudo ao vivo: gire o volante, pise nos pedais, troque as marchas e aperte os botões."/>
-                                <Button Style="{StaticResource FlatButton}" Content="PULSO DE FORÇA DE TESTE" Margin="0,0,0,10" Click="Pulse_Click"/>
-                                <Button Style="{StaticResource FlatButton}" Content="REAPLICAR MODO NATIVO E ROTAÇÃO" Margin="0,0,0,10" Click="Reapply_Click"/>
-                                <Button Style="{StaticResource FlatButton}" Content="INICIAR ASSISTENTE DE CALIBRAÇÃO" IsEnabled="False"
-                                        ToolTipService.ShowOnDisabled="True" ToolTip="Fase 9"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Pulso de força de teste" Margin="0,0,0,10" Click="Pulse_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Reaplicar modo nativo e rotação" Margin="0,0,0,10" Click="Reapply_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Click="Calibrate_Click"/>
                             </StackPanel>
                         </ScrollViewer>
                         <Grid Grid.Column="1" Margin="24">
@@ -583,7 +615,7 @@
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock x:Name="TestAngle" Text="—" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                         <Grid x:Name="TestTrack" Height="10" Margin="0,14,0,6">
-                                            <Rectangle Fill="#262626" RadiusX="5" RadiusY="5"/>
+                                            <Rectangle Fill="#1B2230" RadiusX="5" RadiusY="5"/>
                                             <Rectangle Width="2" Fill="#555" HorizontalAlignment="Center"/>
                                             <Rectangle x:Name="TestMarker" Fill="{StaticResource Accent}" Width="10" RadiusX="5" RadiusY="5" HorizontalAlignment="Left"/>
                                         </Grid>
@@ -620,10 +652,19 @@
                 </Grid>
 
                 <!-- ⓘ no canto inferior direito -->
-                <Button Grid.Column="1" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,14,14"
-                        ToolTip="Sobre esta tela">
+                <Button x:Name="InfoButton" Grid.Column="1" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,14,14"
+                        ToolTip="Sobre esta tela" Click="Info_Click">
                     <TextBlock Text="&#xE946;" Style="{StaticResource Icon}" FontSize="17" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
+                <Popup x:Name="InfoPopup" PlacementTarget="{Binding ElementName=InfoButton}" Placement="Top" HorizontalOffset="-330" VerticalOffset="-6"
+                       StaysOpen="False" AllowsTransparency="True">
+                    <Border Background="#1B2230" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="4" Padding="18,14" Width="370">
+                        <StackPanel>
+                            <TextBlock x:Name="InfoTitle" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="InfoText" Style="{StaticResource Hint}" Foreground="#CBD5E1"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
             </Grid>
         </Grid>
 
@@ -636,7 +677,7 @@
                         <TextBlock Text="FORÇA NO VOLANTE" Style="{StaticResource SettingLabel}"/>
                         <TextBlock x:Name="RoadForce" Text="0%" FontSize="28" FontWeight="SemiBold"/>
                         <Grid Height="8" Margin="0,6,0,10">
-                            <Rectangle Fill="#333" RadiusX="4" RadiusY="4"/>
+                            <Rectangle Fill="#2E3A4F" RadiusX="4" RadiusY="4"/>
                             <Rectangle Width="2" Fill="#777" HorizontalAlignment="Center"/>
                             <Rectangle x:Name="RoadForceBar" Fill="{StaticResource Accent}" RadiusX="4" RadiusY="4" HorizontalAlignment="Left" Width="0"/>
                         </Grid>
@@ -644,13 +685,13 @@
                         <TextBlock x:Name="RoadAngle" Text="0°" FontSize="20" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
-                <Button Style="{StaticResource AccentButton}" Content="PARAR (ESC)" Click="StopFfbTest_Click" Margin="0,10,0,0"/>
+                <Button Style="{StaticResource AccentButton}" Content="Parar (Esc)" Click="StopFfbTest_Click" Margin="0,10,0,0"/>
             </StackPanel>
         </Grid>
 
         <!-- ===================== console de diagnóstico (seção 6) ===================== -->
-        <Border x:Name="ConsolePanel" Grid.Row="1" Height="300" VerticalAlignment="Bottom" Background="#0A0A0A"
-                BorderBrush="#2A2A2A" BorderThickness="0,1,0,0" Visibility="Collapsed">
+        <Border x:Name="ConsolePanel" Grid.Row="1" Height="300" VerticalAlignment="Bottom" Background="#0E121A"
+                BorderBrush="#232B3A" BorderThickness="0,1,0,0" Visibility="Collapsed">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="ConsoleShift"/>
             </Border.RenderTransform>
@@ -666,14 +707,14 @@
                         <ToggleButton x:Name="ChipOk" Style="{StaticResource Chip}" Content="OK" Foreground="{StaticResource Ok}" Click="ConsoleFilter_Changed"/>
                         <ToggleButton x:Name="ChipAviso" Style="{StaticResource Chip}" Content="AVISO" Foreground="{StaticResource Warn}" Click="ConsoleFilter_Changed"/>
                         <ToggleButton x:Name="ChipErro" Style="{StaticResource Chip}" Content="ERRO" Foreground="{StaticResource Error}" Click="ConsoleFilter_Changed"/>
-                        <Border Style="{StaticResource Dropdown}" Padding="9,4" Margin="8,0,8,0" Background="#161616" MouseLeftButtonUp="Origin_Click"
+                        <Border Style="{StaticResource Dropdown}" Padding="9,4" Margin="8,0,8,0" Background="#0E121A" MouseLeftButtonUp="Origin_Click"
                                 ToolTip="Clique para trocar a origem">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="OriginText" Text="Todas as origens" FontSize="11.5" Foreground="{StaticResource TextDim}"/>
                                 <TextBlock Text="&#xE70D;" Style="{StaticResource Icon}" FontSize="8" Foreground="{StaticResource TextDim}" Margin="8,1,0,0"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource Dropdown}" Padding="9,3" Width="190" Background="#161616" Cursor="IBeam">
+                        <Border Style="{StaticResource Dropdown}" Padding="9,3" Width="190" Background="#0E121A" Cursor="IBeam">
                             <DockPanel>
                                 <TextBlock Text="&#xE721;" Style="{StaticResource Icon}" FontSize="11" Foreground="{StaticResource TextFaint}" Margin="0,0,8,0"/>
                                 <TextBox x:Name="ConsoleSearch" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0"
@@ -693,7 +734,7 @@
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="328"/>
                     </Grid.ColumnDefinitions>
                     <ListBox x:Name="ConsoleList" Margin="16,0,8,10" Background="Transparent" BorderThickness="0"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" VirtualizingPanel.IsVirtualizing="True">
@@ -710,21 +751,21 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock x:Name="T" Text="{Binding}" FontFamily="{StaticResource Mono}" FontSize="12" Margin="0,1" Foreground="#B0B0B0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="T" Text="{Binding}" FontFamily="{StaticResource Mono}" FontSize="12" Margin="0,1" Foreground="#94A3B8" TextWrapping="Wrap"/>
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding Nivel}" Value="OK"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Ok}"/></DataTrigger>
                                     <DataTrigger Binding="{Binding Nivel}" Value="AVISO"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Warn}"/></DataTrigger>
                                     <DataTrigger Binding="{Binding Nivel}" Value="ERRO"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Error}"/></DataTrigger>
-                                    <DataTrigger Binding="{Binding Nivel}" Value="DEBUG"><Setter TargetName="T" Property="Foreground" Value="#6E6E6E"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding Nivel}" Value="DEBUG"><Setter TargetName="T" Property="Foreground" Value="#64748B"/></DataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Border Grid.Column="1" BorderBrush="#1E1E1E" BorderThickness="1,0,0,0" Padding="16,0,16,10">
+                    <Border Grid.Column="1" BorderBrush="#1B2230" BorderThickness="1,0,0,0" Padding="16,0,16,10">
                         <DockPanel>
                             <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
                                 <TextBlock Text="TESTES RÁPIDOS" Style="{StaticResource SettingLabel}" VerticalAlignment="Center"/>
-                                <Button Style="{StaticResource LinkButton}" Content="RODAR TODOS" HorizontalAlignment="Right" Click="QuickTests_Click"/>
+                                <Button Style="{StaticResource LinkButton}" Content="Rodar todos" HorizontalAlignment="Right" Click="QuickTests_Click"/>
                             </Grid>
                             <StackPanel x:Name="QuickTests"/>
                         </DockPanel>
@@ -735,7 +776,7 @@
 
         <!-- ===================== notificação (5.7) ===================== -->
         <Border x:Name="Toast" Grid.Row="1" Width="390" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24"
-                Background="#1F1F1F" BorderBrush="#323232" BorderThickness="1" CornerRadius="8" Padding="16,14" Visibility="Collapsed">
+                Background="#141923" BorderBrush="#2E3A4F" BorderThickness="1" CornerRadius="8" Padding="16,14" Visibility="Collapsed">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="ToastShift"/>
             </Border.RenderTransform>
@@ -756,7 +797,7 @@
                         <TextBlock x:Name="ToastMark" Text="&#xE73E;" Style="{StaticResource Icon}" FontSize="12" Foreground="{StaticResource Ok}" Margin="0,0,7,0"/>
                         <TextBlock x:Name="ToastTitle" Text="Forza Horizon 5" FontSize="13.5" FontWeight="Bold"/>
                     </StackPanel>
-                    <TextBlock x:Name="ToastBody" Style="{StaticResource Hint}" Foreground="#CFCFCF" Margin="0,4,0,10"
+                    <TextBlock x:Name="ToastBody" Style="{StaticResource Hint}" Foreground="#CBD5E1" Margin="0,4,0,10"
                                Text="Compatível com o G27 no Modo Padrão. Perfil aplicado: 900°."/>
                     <StackPanel x:Name="ToastActions" Orientation="Horizontal"/>
                 </StackPanel>
@@ -766,17 +807,48 @@
             </Grid>
         </Border>
 
+        <!-- ===================== assistente da primeira abertura (Fase 9) ===================== -->
+        <Grid x:Name="WizardOverlay" Grid.RowSpan="2" Background="#E6000000" Visibility="Collapsed">
+            <Border Width="560" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#141923" BorderBrush="#242D3F" BorderThickness="1" CornerRadius="6" Padding="30,26">
+                <StackPanel>
+                    <TextBlock Text="Bem-vindo ao G27 Hub" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                    <TextBlock x:Name="WizardIntro" Style="{StaticResource Hint}" Margin="0,0,0,18"
+                               Text="Vou conferir o PC e o volante e deixar tudo pronto para jogar: modo nativo (900°, pedais separados), force feedback para os jogos e um teste rápido de força e LEDs. Leva menos de 1 minuto. O volante vai girar um pouco sozinho."/>
+                    <StackPanel x:Name="WizardList"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                        <Button x:Name="WizardSkip" Style="{StaticResource FlatButton}" Content="Pular" Margin="0,0,10,0" Click="WizardSkip_Click"/>
+                        <Button x:Name="WizardNext" Style="{StaticResource AccentButton}" Content="Começar" MinWidth="130" Click="WizardNext_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ===================== calibração dos pedais (Fase 9) ===================== -->
+        <Grid x:Name="CalibOverlay" Grid.RowSpan="2" Background="#E6000000" Visibility="Collapsed">
+            <Border Width="520" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#141923" BorderBrush="#242D3F" BorderThickness="1" CornerRadius="6" Padding="30,26">
+                <StackPanel>
+                    <TextBlock Text="Calibrar pedais" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock x:Name="CalibStep" Style="{StaticResource Hint}" Foreground="#E2E8F0" FontSize="13" Margin="0,0,0,18"/>
+                    <StackPanel x:Name="CalibRows"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                        <Button Style="{StaticResource FlatButton}" Content="Cancelar" Margin="0,0,10,0" Click="CalibCancel_Click"/>
+                        <Button x:Name="CalibNext" Style="{StaticResource AccentButton}" MinWidth="130" Click="CalibNext_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- borda vermelha discreta: Modo Compatibilidade Total ligado -->
         <Border x:Name="CompatFrame" Grid.RowSpan="2" BorderBrush="#A63C3C" BorderThickness="2" IsHitTestVisible="False" Visibility="Collapsed"/>
 
         <!-- ===================== instalando / desinstalando a Compatibilidade Total ===================== -->
         <Grid x:Name="CompatOverlay" Grid.RowSpan="2" Background="#D8000000" Visibility="Collapsed">
-            <Border Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="28,24">
+            <Border Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#141923" BorderBrush="#242D3F" BorderThickness="1" CornerRadius="6" Padding="28,24">
                 <StackPanel>
                     <TextBlock x:Name="CompatTitle" FontSize="18" FontWeight="SemiBold"/>
                     <TextBlock x:Name="CompatStepText" Style="{StaticResource Hint}" Margin="0,14,0,10"/>
                     <Grid>
-                        <Border Height="6" CornerRadius="3" Background="#2A2A2A"/>
+                        <Border Height="6" CornerRadius="3" Background="#232B3A"/>
                         <Border x:Name="CompatBar" Height="6" CornerRadius="3" Background="{StaticResource Accent}" HorizontalAlignment="Left" Width="0"/>
                     </Grid>
                     <TextBlock x:Name="CompatPercent" Text="0%" Style="{StaticResource Hint}" HorizontalAlignment="Right" Margin="0,8,0,0"/>

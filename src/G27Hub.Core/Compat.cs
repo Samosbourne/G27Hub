@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static G27Hub.Core.Lang;
 using G27Hub.Logging;
 
 namespace G27Hub.Core;
@@ -119,59 +120,59 @@ public static class Preflight
         switch (game.Status)
         {
             case "nativo" or "directinput" when ctx.CompatModeOn:
-                list.Add(Advice.Tip(t, "Este jogo funciona melhor no Modo Padrão: no Compatibilidade Total ele vê \"vJoy Device\", não o G27. Recomendado: desligar o Compatibilidade Total."));
+                list.Add(Advice.Tip(t, T("Este jogo funciona melhor no Modo Padrão: no Compatibilidade Total ele vê \"vJoy Device\", não o G27. Recomendado: desligar o Compatibilidade Total.")));
                 break;
             case "nativo":
-                list.Add(Advice.Ok(t, $"Compatível com o G27 no Modo Padrão ({ConfidenceText(game.Confidence)})."));
+                list.Add(Advice.Ok(t, T($"Compatível com o G27 no Modo Padrão ({ConfidenceText(game.Confidence)}).")));
                 // descoberto no BeamNG (21/10/2026): presets do G27 feitos com o LGS, que reorganiza pedais e botões
                 if (!game.Checklist.Contains("corrigir-controles-beamng"))
-                    list.Add(Advice.Tip(t, "Se pedais ou marchas vierem trocados: o preset do G27 deste jogo foi feito com o LGS, que muda a ordem dos pedais e botões. Remapeie uma vez nos controles do jogo."));
+                    list.Add(Advice.Tip(t, T("Se pedais ou marchas vierem trocados: o preset do G27 deste jogo foi feito com o LGS, que muda a ordem dos pedais e botões. Remapeie uma vez nos controles do jogo.")));
                 break;
             case "directinput":
-                list.Add(Advice.Ok(t, $"Aceita o G27 como volante DirectInput: configure os controles uma vez dentro do jogo ({ConfidenceText(game.Confidence)})."));
+                list.Add(Advice.Ok(t, T($"Aceita o G27 como volante DirectInput: configure os controles uma vez dentro do jogo ({ConfidenceText(game.Confidence)}).")));
                 break;
             case "precisa-compat-total" when !ctx.CompatModeOn:
-                list.Add(Advice.Tip(t, "Este jogo não tem suporte nativo ao G27. Recomendado: ligar o Modo Compatibilidade Total (na primeira vez instala os drivers e pede para reiniciar o PC)."));
+                list.Add(Advice.Tip(t, T("Este jogo não tem suporte nativo ao G27. Recomendado: ligar o Modo Compatibilidade Total (na primeira vez instala os drivers e pede para reiniciar o PC).")));
                 break;
             case "limitado":
-                list.Add(Advice.Warn(t, "Suporte a volante limitado neste jogo. O force feedback pode não funcionar em nenhum modo."));
+                list.Add(Advice.Warn(t, T("Suporte a volante limitado neste jogo. O force feedback pode não funcionar em nenhum modo.")));
                 break;
         }
         if (user is { Bad: > 0 } && user.Bad >= user.Good)
-            list.Add(Advice.Warn(t, $"Da última vez você marcou 👎 neste jogo ({user.Bad}×). Veja as notas: {game.Notes}"));
+            list.Add(Advice.Warn(t, T($"Da última vez você marcou 👎 neste jogo ({user.Bad}×). Veja as notas: {T(game.Notes)}")));
 
         // 3. modo nativo
         if (ctx.WheelConnected && !ctx.NativeMode)
-            list.Add(Advice.Warn(t, "O G27 não estava em modo nativo: o app reaplicou. Reinicie o jogo para ele enxergar os 900°."));
+            list.Add(Advice.Warn(t, T("O G27 não estava em modo nativo: o app reaplicou. Reinicie o jogo para ele enxergar os 900°.")));
         if (!ctx.WheelConnected)
-            list.Add(Advice.Warn(t, "O G27 não está conectado. Ligue o volante e reinicie o jogo."));
+            list.Add(Advice.Warn(t, T("O G27 não está conectado. Ligue o volante e reinicie o jogo.")));
 
         // 4–5. outros controles e Steam Input
         if (ctx.XboxControllers > 0 && game.Checklist.Contains("desconectar-outros-controles"))
-            list.Add(Advice.Warn(t, $"{(ctx.XboxControllers == 1 ? "Um controle de Xbox está conectado" : $"{ctx.XboxControllers} controles de Xbox estão conectados")}. Desconecte para o jogo usar o G27 como Device 1."));
+            list.Add(Advice.Warn(t, (ctx.XboxControllers == 1 ? T("Um controle de Xbox está conectado.") : T($"{ctx.XboxControllers} controles de Xbox estão conectados.")) + T(" Desconecte para o jogo usar o G27 como Device 1.")));
         if (ctx.SteamRunning && game.Checklist.Contains("desligar-steam-input"))
-            list.Add(Advice.Tip(t, "Confira se o Steam Input está desligado para este jogo (Propriedades → Controle), senão a Steam pode \"roubar\" o volante."));
+            list.Add(Advice.Tip(t, T("Confira se o Steam Input está desligado para este jogo (Propriedades → Controle), senão a Steam pode \"roubar\" o volante.")));
 
         // dicas da base
         if (game.Checklist.Contains("steer-lock-igual") || game.SuggestedRange != ctx.AppRange)
             list.Add(Advice.Tip(t, game.SuggestedRange != ctx.AppRange
-                ? $"Sugerido para este jogo: {game.SuggestedRange}° (o app está em {ctx.AppRange}°). Ajuste a rotação/steer lock do jogo para bater com o app."
-                : $"Deixe a rotação/steer lock do jogo em {ctx.AppRange}°, igual ao app."));
+                ? T($"Sugerido para este jogo: {game.SuggestedRange}° (o app está em {ctx.AppRange}°). Ajuste a rotação/steer lock do jogo para bater com o app.")
+                : T($"Deixe a rotação/steer lock do jogo em {ctx.AppRange}°, igual ao app.")));
         if (game.Checklist.Contains("sem-restos-ghub"))
-            list.Add(Advice.Tip(t, "Este jogo conflita com restos do G HUB/SDK da Logitech. Se o volante não responder, rode os testes rápidos do console (drivers antigos)."));
+            list.Add(Advice.Tip(t, T("Este jogo conflita com restos do G HUB/SDK da Logitech. Se o volante não responder, rode os testes rápidos do console (drivers antigos).")));
         if (game.Checklist.Contains("corrigir-controles-beamng") && !ctx.ControlsFixed)
-            list.Add(Advice.Warn(t, "O mapa do G27 que vem no BeamNG foi feito para o LGS: sem ele o acelerador vira embreagem e as marchas ficam erradas. Use CORRIGIR CONTROLES (o app ajusta o arquivo do BeamNG, com backup)."));
+            list.Add(Advice.Warn(t, T("O mapa do G27 que vem no BeamNG foi feito para o LGS: sem ele o acelerador vira embreagem e as marchas ficam erradas. Use CORRIGIR CONTROLES (o app ajusta o arquivo do BeamNG, com backup).")));
         if (game.Checklist.Contains("mola-centralizadora"))
-            list.Add(Advice.Tip(t, "O jogo tem mola de centragem própria: deixe a CENTRALIZAÇÃO DA FORÇA DA MOLA do app baixa neste perfil."));
+            list.Add(Advice.Tip(t, T("O jogo tem mola de centragem própria: deixe a CENTRALIZAÇÃO DA FORÇA DA MOLA do app baixa neste perfil.")));
         return list;
     }
 
     static string ConfidenceText(string c) => c switch
     {
-        "oficial" => "lista oficial do jogo",
-        "testado" => "testado",
-        "comunidade" => "relatos da comunidade",
-        _ => "a confirmar",
+        "oficial" => T("lista oficial do jogo"),
+        "testado" => T("testado"),
+        "comunidade" => T("relatos da comunidade"),
+        _ => T("a confirmar"),
     };
 
     /// <summary>

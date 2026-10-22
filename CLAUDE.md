@@ -49,6 +49,14 @@ src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G H
                      Testar sem jogo: g27fftest <const|sine|spring|damper> vjoy.
                      MainWindow.Leds.cs: thread de LEDs (TelemetryHub → RpmLeds → SetLeds sem log, só quando muda),
                      funciona na bandeja; teste e atalho de rotação seguram os LEDs (HoldLeds). Portas UDP só em 127.0.0.1.
+                     Fase 9: MainWindow.Wizard.cs (assistente da 1ª abertura, AppConfig.FirstRunDone), MainWindow.Calibration.cs +
+                     Core/PedalCalibration.cs (calibração do DirectInput em HKCU; eixos X 0, Y 1, Z 2, Rz 5), MainWindow.Info.cs (ⓘ),
+                     MainWindow.Spin.cs + Core/WheelSpinner.cs (girar o G27 pelo mouse; ajuste com "g27cli spin") e
+                     Core/WheelTest.cs (TESTAR VOLANTE, como o LGS; "g27cli wheeltest").
+                     Idioma: Core/Lang.cs, T("texto") e T($"texto {x}") (chave = português; data/lang-en.json embutido);
+                     LangUi.cs traduz o XAML ao abrir; AppConfig.Language; globo no topo reabre o app. Texto novo de interface:
+                     envolver com T() e pôr o inglês em data/lang-en.json ("--shots <pasta> --lang en" lista o que falta).
+                     O log (AppLog) fica em português.
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").
@@ -67,6 +75,7 @@ Dados: config em `%APPDATA%\G27Hub\`, logs em `%LOCALAPPDATA%\G27Hub\logs\`.
 ## Comandos
 ```
 .\g27hub                        # abre o app (g27hub.cmd = dotnet run --project src/G27Hub.App)
+.\installer\build.ps1            # instalador: installer\out\G27Hub-Setup-<versão>.exe (Inno Setup 6 por usuário)
 .\src\native\build.ps1          # DLL de FFB + g27fftest (x64 e x86) + plugin do ETS2/ATS (x64) (antes do dotnet build quando mexer no C)
 dotnet build
 dotnet test

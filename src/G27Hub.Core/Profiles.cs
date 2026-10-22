@@ -73,6 +73,10 @@ public sealed class AppConfig
     public LedSettings Leds { get; set; } = new();
     /// <summary>Compatibilidade Total ligada (G27 escondido, jogos veem o vJoy). Desligada de fábrica; só o usuário liga.</summary>
     public bool CompatOn { get; set; }
+    /// <summary>Assistente da primeira abertura já foi concluído ou pulado (Fase 9).</summary>
+    public bool FirstRunDone { get; set; }
+    /// <summary>Idioma da interface: "pt" (padrão) ou "en".</summary>
+    public string Language { get; set; } = "pt";
     public List<Profile> Profiles { get; set; } = [];
 
     // legado da Fase 4, só lido para migrar

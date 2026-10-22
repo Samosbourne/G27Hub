@@ -5,6 +5,7 @@ using System.Windows.Media;
 using G27Hub.App.Controls;
 using G27Hub.Core;
 using G27Hub.Logging;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 
@@ -79,9 +80,9 @@ public partial class MainWindow
         LedFuelCheck.IsChecked = L.LowFuelBlink;
         LedModeHint.Text = L.Mode switch
         {
-            LedMode.Progressive => "A barra enche com a RPM; no LED 5 (ponto de troca) pisca inteira.",
-            LedMode.ShiftPoint => "Apagados até o ponto de troca (LED 5); aí piscam todos.",
-            _ => "A barra enche e fica acesa; pisca só no corte de giro.",
+            LedMode.Progressive => T("A barra enche com a RPM; no LED 5 (ponto de troca) pisca inteira."),
+            LedMode.ShiftPoint => T("Apagados até o ponto de troca (LED 5); aí piscam todos."),
+            _ => T("A barra enche e fica acesa; pisca só no corte de giro."),
         };
         UpdateGameTelemetry();
     }
@@ -104,16 +105,16 @@ public partial class MainWindow
         ScsTelemetryPanel.Visibility = scs.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         var scsOn = ScsTelemetry.IsInstalled(scs);
         ScsTelemetryText.Text = scsOn
-            ? "Euro Truck / American Truck Simulator: plugin de telemetria do G27 Hub instalado."
-            : "Euro Truck / American Truck Simulator: precisa do plugin de telemetria do G27 Hub (o jogo pergunta uma vez se pode usar).";
-        ScsTelemetryButton.Content = scsOn ? "REMOVER DO ETS2 / ATS" : "INSTALAR NO ETS2 / ATS";
+            ? T("Euro Truck / American Truck Simulator: plugin de telemetria do G27 Hub instalado.")
+            : T("Euro Truck / American Truck Simulator: precisa do plugin de telemetria do G27 Hub (o jogo pergunta uma vez se pode usar).");
+        ScsTelemetryButton.Content = scsOn ? T("Remover do ETS2 / ATS") : T("Instalar no ETS2 / ATS");
 
         BeamNgTelemetryPanel.Visibility = BeamNgFix.IsInstalled() ? Visibility.Visible : Visibility.Collapsed;
         var on = BeamNgTelemetry.IsInstalled();
         BeamNgTelemetryText.Text = on
-            ? "BeamNG.drive: mod de telemetria do G27 Hub instalado (manda a RPM máxima de cada carro)."
-            : "BeamNG.drive: precisa de um mod pequeno do G27 Hub para mandar a RPM máxima de cada carro.";
-        BeamNgTelemetryButton.Content = on ? "REMOVER DO BEAMNG" : "INSTALAR NO BEAMNG";
+            ? T("BeamNG.drive: mod de telemetria do G27 Hub instalado (manda a RPM máxima de cada carro).")
+            : T("BeamNG.drive: precisa de um mod pequeno do G27 Hub para mandar a RPM máxima de cada carro.");
+        BeamNgTelemetryButton.Content = on ? T("Remover do BeamNG") : T("Instalar no BeamNG");
     }
 
     void BeamNgTelemetry_Click(object sender, RoutedEventArgs e)
@@ -124,13 +125,13 @@ public partial class MainWindow
             else
             {
                 BeamNgTelemetry.Install();
-                ShowToast("LED", "Ok", "Telemetria do BeamNG instalada", "Vale na próxima vez que o BeamNG abrir. Para remover, use o mesmo botão.");
+                ShowToast("LED", "Ok", T("Telemetria do BeamNG instalada"), T("Vale na próxima vez que o BeamNG abrir. Para remover, use o mesmo botão."));
             }
         }
         catch (Exception ex)
         {
             AppLog.Erro("TELEMETRIA", "Não consegui mexer no mod do BeamNG", ex);
-            ShowToast("LED", "Error", "Falha no mod do BeamNG", ex.Message, "VER DETALHES");
+            ShowToast("LED", "Error", T("Falha no mod do BeamNG"), ex.Message, T("Ver detalhes"));
         }
         UpdateGameTelemetry();
     }
@@ -144,13 +145,13 @@ public partial class MainWindow
             else
             {
                 ScsTelemetry.Install(dirs);
-                ShowToast("LED", "Ok", "Telemetria do ETS2 / ATS instalada", "Ao abrir o jogo, ele avisa que achou um plugin: é só confirmar. Para remover, use o mesmo botão.");
+                ShowToast("LED", "Ok", T("Telemetria do ETS2 / ATS instalada"), T("Ao abrir o jogo, ele avisa que achou um plugin: é só confirmar. Para remover, use o mesmo botão."));
             }
         }
         catch (Exception ex)
         {
             AppLog.Erro("TELEMETRIA", "Não consegui mexer no plugin do ETS2 / ATS (o jogo está aberto?)", ex);
-            ShowToast("LED", "Error", "Falha no plugin do ETS2 / ATS", "Feche o jogo e tente de novo.", "VER DETALHES");
+            ShowToast("LED", "Error", T("Falha no plugin do ETS2 / ATS"), T("Feche o jogo e tente de novo."), T("Ver detalhes"));
         }
         UpdateGameTelemetry();
     }
@@ -161,7 +162,7 @@ public partial class MainWindow
         if (Environment.TickCount64 < Interlocked.Read(ref _ledHoldUntil)) return; // o teste desenha sozinho
         var f = _ledFrame;
         SetLedVisual(Math.Max(_ledMask, 0));
-        LedText.Text = f == null ? "sem telemetria: abra um jogo"
+        LedText.Text = f == null ? T("sem telemetria: abra um jogo")
             : $"{f.Source} · {f.Rpm:N0}{(f.MaxRpm > 0 ? $" / {f.MaxRpm:N0}" : "")} rpm ({RpmLeds.Percent(f, L):0}%)" +
               (f.Gear is { } g ? $" · {(g < 0 ? "R" : g == 0 ? "N" : $"{g}ª")}" : "");
     }
@@ -184,7 +185,7 @@ public partial class MainWindow
     /// <summary>Simula uma acelerada: 60% → 100% da RPM em 2,5 s e segura 1,5 s no corte, com o modo e os limites atuais.</summary>
     async Task TestLeds()
     {
-        if (!_dev.IsConnected) { ShowToast("LED", "Warn", "G27 não conectado", "Ligue o volante para testar os LEDs."); return; }
+        if (!_dev.IsConnected) { ShowToast("LED", "Warn", T("G27 não conectado"), T("Ligue o volante para testar os LEDs.")); return; }
         AppLog.Info("LED", $"Teste dos LEDs: simulando uma acelerada (modo {L.Mode})");
         var start = Environment.TickCount64;
         for (long t = 0; t < 4000; t = Environment.TickCount64 - start)
@@ -194,7 +195,7 @@ public partial class MainWindow
             var mask = RpmLeds.Mask(new TelemetryFrame("teste", pct * 70, 7000, null), L, t);
             try { _dev.SetLeds(mask, log: false); } catch (Exception ex) when (ex is IOException or InvalidOperationException) { return; }
             SetLedVisual(mask);
-            LedText.Text = $"teste · {pct * 70:N0} / 7.000 rpm ({pct:0}%)";
+            LedText.Text = T($"teste · {pct * 70:N0} / 7.000 rpm ({pct:0}%)");
             await Task.Delay(16);
         }
         HoldLeds(0);

@@ -46,7 +46,7 @@ public sealed record G27State(IReadOnlyDictionary<string, AxisValue> Axes, IRead
     }
 
     /// <summary>0..1 pisado. O G27 manda 255 com o pedal solto.</summary>
-    double Pedal(string axis) => Axes.TryGetValue(axis, out var a) ? 1 - a.Normalized : 0;
+    double Pedal(string axis) => Axes.TryGetValue(axis, out var a) ? PedalCalibration.Apply(axis, a) : 0;
 
     /// <summary>Ângulo em graus (negativo = esquerda) a partir da posição 0..1 do eixo.</summary>
     public static double AngleFrom(double normalized, int range) => (normalized - 0.5) * range;

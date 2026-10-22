@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using G27Hub.Logging;
 using Forms = System.Windows.Forms;
+using static G27Hub.Core.Lang;
 
 namespace G27Hub.App;
 
@@ -13,27 +14,59 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (Array.IndexOf(e.Args, "--export-icon") is >= 0 and var ico)
+        {
+            G27Hub.App.MainWindow.ExportIcon(e.Args[ico + 1]);
+            Shutdown();
+            return;
+        }
+        // desinstalador (Inno Setup): desfaz o que o app mudou no PC antes de apagar os arquivos
+        if (e.Args.Contains("--uninstall-cleanup"))
+        {
+            AppLog.Init();
+            UninstallCleanup.Run();
+            AppLog.Close();
+            Shutdown();
+            return;
+        }
+
         // --shots <pasta> [--live]: salva PNG de cada tela e sai (revisão visual sem abrir a janela na frente;
         // --live lê o G27 conectado)
         var shots = Array.IndexOf(e.Args, "--shots");
         if (shots >= 0)
         {
             AppLog.Init();
+            var lang = Array.IndexOf(e.Args, "--lang");
+            if (lang >= 0) G27Hub.Core.Lang.Set(e.Args.ElementAtOrDefault(lang + 1) ?? "pt"); // "--lang en": prints em inglês + lista do que falta traduzir
             var w = new MainWindow(connect: false)
             {
                 WindowStartupLocation = WindowStartupLocation.Manual, Left = -10000, ShowActivated = false,
             };
             w.Show();
-            w.SaveShots(e.Args.ElementAtOrDefault(shots + 1) ?? "shots", e.Args.Contains("--live"));
+            var dir = e.Args.ElementAtOrDefault(shots + 1) ?? "shots";
+            w.SaveShots(dir, e.Args.Contains("--live"));
+            if (G27Hub.Core.Lang.English)
+                System.IO.File.WriteAllLines(System.IO.Path.Combine(dir, "faltando-en.txt"), G27Hub.Core.Lang.Missing.Order());
             AppLog.Close();
             Shutdown();
             return;
         }
 
-        _single = new Mutex(true, @"Local\G27Hub_App", out var first);
+        // primeira abertura depois do instalador: o idioma escolhido no instalador vira o do app
+        if (Array.IndexOf(e.Args, "--setup-lang") is >= 0 and var sl && !System.IO.File.Exists(G27Hub.Core.AppConfig.DefaultPath))
+        {
+            var cfg = G27Hub.Core.AppConfig.Load();
+            cfg.Language = e.Args.ElementAtOrDefault(sl + 1) == "en" ? "en" : "pt";
+            cfg.Save();
+        }
+        G27Hub.Core.Lang.Set(G27Hub.Core.AppConfig.Load().Language);
+        _single = new Mutex(false, @"Local\G27Hub_App");
+        bool first;
+        try { first = _single.WaitOne(e.Args.Contains("--restart") ? 8000 : 0); } // trocando de idioma: espera a instância anterior fechar
+        catch (AbandonedMutexException) { first = true; }
         if (!first)
         {
-            MessageBox.Show("O G27 Hub já está aberto (veja o ícone perto do relógio).", "G27 Hub");
+            MessageBox.Show(T("O G27 Hub já está aberto (veja o ícone perto do relógio)."), T("G27 Hub"));
             Shutdown();
             return;
         }
@@ -55,12 +88,12 @@ public partial class App : Application
 
     static Forms.NotifyIcon CreateTray(MainWindow window)
     {
-        var tray = new Forms.NotifyIcon { Icon = window.TrayIcon, Text = "G27 Hub", Visible = true };
+        var tray = new Forms.NotifyIcon { Icon = window.TrayIcon, Text = T("G27 Hub"), Visible = true };
         tray.ContextMenuStrip = new Forms.ContextMenuStrip();
-        tray.ContextMenuStrip.Items.Add("Abrir G27 Hub", null, (_, _) => window.ShowFromTray());
-        tray.ContextMenuStrip.Items.Add("Reaplicar modo nativo e rotação", null, (_, _) => window.Reapply());
+        tray.ContextMenuStrip.Items.Add(T("Abrir G27 Hub"), null, (_, _) => window.ShowFromTray());
+        tray.ContextMenuStrip.Items.Add(T("Reaplicar modo nativo e rotação"), null, (_, _) => window.Reapply());
         tray.ContextMenuStrip.Items.Add("-");
-        tray.ContextMenuStrip.Items.Add("Sair", null, (_, _) => window.Quit());
+        tray.ContextMenuStrip.Items.Add(T("Sair"), null, (_, _) => window.Quit());
         tray.DoubleClick += (_, _) => window.ShowFromTray();
         return tray;
     }
