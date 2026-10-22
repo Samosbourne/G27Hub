@@ -120,10 +120,11 @@ public sealed class G27Device : IDisposable
         AppLog.Ok("HID", $"Rotação aplicada: {Range}°");
     }
 
-    public void SetLeds(int mask)
+    /// <summary>log: false para a telemetria, que muda os LEDs dezenas de vezes por segundo.</summary>
+    public void SetLeds(int mask, bool log = true)
     {
-        Send(Leds(mask));
-        AppLog.Info("LED", $"LEDs = {Convert.ToString(mask & 0x1F, 2).PadLeft(5, '0')}");
+        Send(Leds(mask), log);
+        if (log) AppLog.Info("LED", $"LEDs = {Convert.ToString(mask & 0x1F, 2).PadLeft(5, '0')}");
     }
 
     public void SetAutocenter(int percent)

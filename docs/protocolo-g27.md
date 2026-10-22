@@ -7,7 +7,7 @@ Relatórios de saída HID de 7 bytes (o app envia com o report ID `00` na frente
 | Reverter modo ao resetar USB | `F8 0A 00 00 00 00 00` | ✅ validado (Fase 1) |
 | Trocar para modo nativo (com detach) | `F8 09 04 01 00 00 00` | ✅ reenumera `C294` → `C29B` |
 | Rotação 40°–900° | `F8 81 <LSB> <MSB> 00 00 00` | ✅ validado |
-| LEDs de RPM | `F8 12 <máscara 5 bits> 00 00 00 00` | ✅ funciona; ordem física dos bits a anotar |
+| LEDs de RPM | `F8 12 <máscara 5 bits> 00 00 00 00` | ✅ funciona; bit 0 = par de fora (verde) … bit 4 = par do meio (vermelho), a confirmar |
 | Desligar autocentro | `F5 00 00 00 00 00 00` | ✅ validado |
 | Configurar autocentro | `F5…` (desliga) → `FE 0D <k> <k> <força> 00 00` → `14 00 00 00 00 00 00` (liga) | ✅ validado |
 | Força constante (slot 1) | `11 08 <nível> 80 00 00 00` | ✅ validado (Fase 2): `80` = zero, acima de `80` gira para a **esquerda** |

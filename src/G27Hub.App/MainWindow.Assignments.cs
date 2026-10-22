@@ -54,9 +54,9 @@ public partial class MainWindow : IAssignmentHost
         ShowToast("G27", "Accent", $"Rotação: {next}°", "Atalho: os dois vermelhos de cima do volante.");
         if (!_dev.IsConnected) return;
         var count = Array.IndexOf(steps, next) + 1; // LEDs acesos = posição na lista
+        HoldLeds(1200); // a telemetria volta sozinha depois
         _dev.SetLeds((1 << count) - 1);
         await Task.Delay(1200);
-        _dev.SetLeds(0);
     });
 
     // ================= nomes dos botões =================

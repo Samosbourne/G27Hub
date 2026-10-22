@@ -1,0 +1,5 @@
+; Funções que o ETS2/ATS procura num plugin de telemetria (SCS SDK).
+LIBRARY g27hub_telemetry.dll
+EXPORTS
+    scs_telemetry_init
+    scs_telemetry_shutdown

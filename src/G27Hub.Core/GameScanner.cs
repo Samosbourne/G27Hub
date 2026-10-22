@@ -29,16 +29,7 @@ public static partial class GameScanner
 
     static IEnumerable<(string Dir, string Store)> Roots()
     {
-        // Steam: pasta da Steam + bibliotecas extras de libraryfolders.vdf
-        if (Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam")?.GetValue("SteamPath") is string steam)
-        {
-            steam = Path.GetFullPath(steam); // o registro guarda com barras "/"
-            var libs = new List<string> { steam };
-            var vdf = Path.Combine(steam, "steamapps", "libraryfolders.vdf");
-            if (File.Exists(vdf)) libs.AddRange(ParseLibraryFolders(File.ReadAllText(vdf)));
-            foreach (var lib in libs.Distinct(StringComparer.OrdinalIgnoreCase))
-                yield return (Path.Combine(lib, "steamapps", "common"), "Steam");
-        }
+        foreach (var dir in SteamCommonDirs()) yield return (dir, "Steam");
 
         // Epic: um .item (JSON) por jogo com a pasta de instalação
         var manifests = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Epic", "EpicGamesLauncher", "Data", "Manifests");
@@ -54,6 +45,18 @@ public static partial class GameScanner
         // Xbox / Microsoft Store (Game Pass): \XboxGames em cada disco
         foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.IsReady))
             yield return (Path.Combine(drive.RootDirectory.FullName, "XboxGames"), "Xbox");
+    }
+
+    /// <summary>steamapps\common da pasta da Steam e de cada biblioteca extra (libraryfolders.vdf).</summary>
+    public static IEnumerable<string> SteamCommonDirs()
+    {
+        if (Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam")?.GetValue("SteamPath") is not string steam) yield break;
+        steam = Path.GetFullPath(steam); // o registro guarda com barras "/"
+        var libs = new List<string> { steam };
+        var vdf = Path.Combine(steam, "steamapps", "libraryfolders.vdf");
+        if (File.Exists(vdf)) libs.AddRange(ParseLibraryFolders(File.ReadAllText(vdf)));
+        foreach (var lib in libs.Distinct(StringComparer.OrdinalIgnoreCase))
+            yield return Path.Combine(lib, "steamapps", "common");
     }
 
     /// <summary>Caminhos ("path" "D:\\SteamLibrary") de steamapps/libraryfolders.vdf.</summary>

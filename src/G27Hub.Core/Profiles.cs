@@ -64,6 +64,7 @@ public sealed class AppConfig
     /// <summary>Detector inteligente (Fase 6): avisos de compatibilidade ao abrir um jogo. Desligado de fábrica.</summary>
     public bool DetectorOn { get; set; }
     public int[] RotationSteps { get; set; } = [180, 270, 540, 900];
+    public LedSettings Leds { get; set; } = new();
     public List<Profile> Profiles { get; set; } = [];
 
     // legado da Fase 4, só lido para migrar

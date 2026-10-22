@@ -424,9 +424,10 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 **Aceite:** abrir o Forza mostra "Compatível — Modo Padrão"; abrir um jogo marcado `precisa-compat-total` mostra a recomendação sem ativar nada; com um controle de Xbox conectado, o aviso do Device 1 aparece.
 
 ### Fase 7 — LEDs de RPM
-- [ ] Provedores: AC/ACC → F1 → ETS2 → BeamNG/LFS → iRacing → rFactor 2 → Forza. Editor e modo teste.
-- [ ] (F) "Permitir que os jogos controlem os LEDs"; LEDs avançados (limitador de box, bandeiras, combustível, ponto de troca por carro).
-- [ ] (F) Rotação automática por carro (AC, ACC, iRacing).
+- [x] Provedores: AC/ACC, F1 22–25, BeamNG (mod próprio com a RPM máxima de cada carro), ETS2/ATS (plugin próprio do SCS SDK), LFS (OutGauge), Forza. Editor (modo + 5 limites) e modo teste.
+- [ ] iRacing, rFactor 2: ficam para quando o John jogar algum (precisam de plugin de terceiros ou não dá para testar aqui).
+- [x] (F) "Permitir que os jogos controlem os LEDs"; limitador de box, combustível baixo, ponto de troca por carro (pela RPM máxima). Bandeiras: não (nenhum jogo instalado manda).
+- [ ] (F) Rotação automática por carro: não feito. BeamNG e AC já fazem trava virtual pelo FFB; mudar a rotação no meio do jogo tira a direção do 1:1.
 
 ### Fase 8 — Modo Compatibilidade Total (opcional, desligado de fábrica)
 - [ ] Gerenciador: detectar/instalar/desinstalar vJoy e HidHide (instaladores oficiais), ponto de restauração, reinício.

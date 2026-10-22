@@ -111,7 +111,7 @@
     {
       "id": "beamng-drive", "nome": "BeamNG.drive", "exes": ["BeamNG.drive.x64.exe"],
       "status": "directinput", "modoRecomendado": "padrao", "confianca": "testado", "fonte": "",
-      "rotacaoSugerida": 900, "telemetria": "beamng-outgauge", "antiCheat": false,
+      "rotacaoSugerida": 900, "telemetria": "beamng-mod-g27hub", "antiCheat": false,
       "checklist": ["steer-lock-igual", "corrigir-controles-beamng"],
       "notas": "O mapa do G27 que vem no jogo (settings/inputmaps/c29b046d.json) foi feito com o LGS: sem ele, acelerador e embreagem trocam e as marchas caem em outros botões. O G27 Hub corrige o .diff do usuário (com backup)."
     },

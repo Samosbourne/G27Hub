@@ -47,7 +47,7 @@ public partial class MainWindow : Window
     readonly ICollectionView _logView;
     bool _paused;
     string _origin = "";
-    static readonly string[] Origins = ["", "HID", "MODO", "FFB", "LED", "PERFIL", "APP"];
+    static readonly string[] Origins = ["", "HID", "MODO", "FFB", "LED", "TELEMETRIA", "PERFIL", "APP"];
     DateTime _lastErrorToast;
 
     public System.Drawing.Icon TrayIcon { get; }
@@ -95,6 +95,7 @@ public partial class MainWindow : Window
         if (!connect) return;
         StartProfileWatcher();
         StartAssignments();
+        StartLeds();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
         CompositionTarget.Rendering += OnFrame;
@@ -168,6 +169,9 @@ public partial class MainWindow : Window
                 AssignWheel.SetPressed(s.Buttons);
                 var pressed = ButtonEngine.Pressed(s).Except(_prevButtons).FirstOrDefault();
                 if (pressed != 0 && !CapturingKeys) SelectButton(pressed); // apertar no volante escolhe o botão
+                break;
+            case "leds":
+                UpdateLedsTab();
                 break;
             case "teste":
                 TestAngle.Text = $"{_shownAngle:+0.0;-0.0;0.0}°";
@@ -429,31 +433,6 @@ public partial class MainWindow : Window
         return moved;
     }
 
-    async void TestLeds_Click(object sender, RoutedEventArgs e) => await TestLeds();
-
-    async Task TestLeds()
-    {
-        if (!_dev.IsConnected) { ShowToast("LED", "Warn", "G27 não conectado", "Ligue o volante para testar os LEDs."); return; }
-        foreach (var mask in new[] { 1, 2, 4, 8, 16, 31, 0 })
-        {
-            _dev.SetLeds(mask);
-            SetLedVisual(mask);
-            await Task.Delay(mask == 31 ? 900 : 450);
-        }
-    }
-
-    void SetLedVisual(int mask)
-    {
-        LedWheel.SetLeds(mask);
-        for (int i = 0; i < _ledBar.Count; i++)
-        {
-            var on = (mask >> i & 1) != 0;
-            ((SolidColorBrush)_ledBar[i].Background).Opacity = on ? 1 : 0.13;
-            _ledBar[i].Effect = on ? new System.Windows.Media.Effects.DropShadowEffect { Color = ((SolidColorBrush)_ledBar[i].Background).Color, BlurRadius = 18, ShadowDepth = 0, Opacity = 0.8 } : null;
-        }
-        LedText.Text = mask == 0 ? "sem telemetria" : "teste";
-    }
-
     // ================= navegação e janela =================
 
     void ShowScreen(FrameworkElement screen)
@@ -588,19 +567,6 @@ public partial class MainWindow : Window
             for (int s = 0; s < meters[m].Segs.Length; s++) meters[m].Segs[s].Fill = s < lit ? accent : off;
             meters[m].Value.Text = $"{values[m] * 100:0}%";
         }
-    }
-
-    // ================= LEDs =================
-
-    void BuildLedBar()
-    {
-        foreach (var c in new[] { "#35E06B", "#35E06B", "#FFC531", "#FF8A1F", "#FF3B3B" })
-        {
-            var b = new Border { Width = 64, Height = 22, CornerRadius = new CornerRadius(11), Margin = new Thickness(6, 0, 6, 0), Background = Draw.Hex(c) };
-            _ledBar.Add(b);
-            LedBar.Children.Add(b);
-        }
-        SetLedVisual(0);
     }
 
     // ================= força: gráfico ao vivo =================

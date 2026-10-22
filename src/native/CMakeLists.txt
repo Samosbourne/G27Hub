@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(g27hub_native C)
+project(g27hub_native C CXX)
 
 # Gerado duas vezes por build.ps1: -A x64 e -A Win32 (jogos 32 bits carregam a DLL x86).
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded") # CRT estatica: a DLL roda dentro de qualquer jogo
@@ -13,3 +13,9 @@ target_link_libraries(g27ffb hid setupapi advapi32)
 add_executable(g27fftest fftest/fftest.c)
 target_include_directories(g27fftest PRIVATE g27ffb)
 target_link_libraries(g27fftest dinput8 ole32 user32 shell32)
+
+# Plugin de telemetria do ETS2/ATS (C++: os headers do SCS SDK exigem). Só a versão x64 é usada (os jogos são 64 bits).
+add_library(g27scs SHARED g27scs/g27scs.cpp g27scs/g27scs.def)
+set_target_properties(g27scs PROPERTIES OUTPUT_NAME g27hub_telemetry)
+target_include_directories(g27scs PRIVATE scssdk/include)
+target_link_libraries(g27scs ws2_32)

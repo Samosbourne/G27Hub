@@ -29,6 +29,7 @@ Escondido; abre pelo ícone de terminal, **Ctrl+Shift+L** ou "Ver detalhes" de u
 src/G27Hub.Logging   AppLog: Serilog (arquivo rotativo) + buffer em memória; FfbLogServer (pipe da DLL)
 src/G27Hub.Core      protocolo (G27Commands), dispositivo (G27Device), estado (G27State),
                      registro do FFB em HKCU (FfbRegistration), memória compartilhada (FfbShared),
+                     telemetria dos jogos (Telemetry: UDP/memória compartilhada + mod do BeamNG), LEDs (RpmLeds),
                      perfis e config do app (Profiles.cs: AppConfig/Profile/WheelSettings → %APPDATA%\G27Hub\config.json)
 src/G27Hub.Cli       g27cli
 src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G HUB); desenhos próprios do G27/pedais/câmbio
@@ -40,9 +41,13 @@ src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G H
                      e manda teclas por SendInput com scan code (Core/Input.cs); pausado com o app em foco.
                      MainWindow.Detector.cs: detector opcional (AppConfig.DetectorOn, desligado de fábrica) usando
                      Core/Compat.cs (CompatDb embutida de data/compat-db.json, UserCompat, Preflight) e Core/GameScanner.cs.
+                     MainWindow.Leds.cs: thread de LEDs (TelemetryHub → RpmLeds → SetLeds sem log, só quando muda),
+                     funciona na bandeja; teste e atalho de rotação seguram os LEDs (HoldLeds). Portas UDP só em 127.0.0.1.
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").
+src/native/g27scs    g27hub_telemetry.dll: plugin de telemetria do ETS2/ATS (C++, SCS SDK MIT em src/native/scssdk), só x64;
+                     manda o mesmo pacote do mod do BeamNG ("G27T") para 127.0.0.1:4445
 src/native/fftest    g27fftest.exe: testa o FFB via DirectInput como um jogo (x64 e x86)
 tests/G27Hub.Core.Tests
 docs/protocolo-g27.md, docs/testes/faseN.md
@@ -56,7 +61,7 @@ Dados: config em `%APPDATA%\G27Hub\`, logs em `%LOCALAPPDATA%\G27Hub\logs\`.
 ## Comandos
 ```
 .\g27hub                        # abre o app (g27hub.cmd = dotnet run --project src/G27Hub.App)
-.\src\native\build.ps1          # DLL de FFB + g27fftest, x64 e x86 (antes do dotnet build quando mexer no C)
+.\src\native\build.ps1          # DLL de FFB + g27fftest (x64 e x86) + plugin do ETS2/ATS (x64) (antes do dotnet build quando mexer no C)
 dotnet build
 dotnet test
 .\g27cli <list|native|range|autocenter|leds|monitor|log|ffb ...> [-v]   # g27cli.cmd = dotnet run --project src/G27Hub.Cli --

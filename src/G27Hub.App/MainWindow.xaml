@@ -463,24 +463,31 @@
                         <ScrollViewer Style="{StaticResource PanelScroll}">
                             <StackPanel Margin="22,20,22,22">
                                 <TextBlock Text="LEDs de RPM" Style="{StaticResource SectionTitle}" Margin="0,0,0,22"/>
+                                <CheckBox x:Name="LedOnCheck" Content="ACENDER OS LEDS COM A RPM DO JOGO" Margin="0,0,0,22" Click="LedSetting_Click"/>
                                 <TextBlock Text="MODO" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Led" Content="PROGRESSIVO" IsChecked="True" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Led" Content="PONTO DE TROCA (PISCA)" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Led" Content="LIMITADOR" Margin="0,0,0,22"/>
-                                <c:SettingSlider Label="LED 1 ACENDE EM (% DA RPM)" Value="75"/>
-                                <c:SettingSlider Label="LED 2" Value="80"/>
-                                <c:SettingSlider Label="LED 3" Value="85"/>
-                                <c:SettingSlider Label="LED 4" Value="90"/>
-                                <c:SettingSlider Label="LED 5" Value="95"/>
-                                <TextBlock Text="FONTE DE TELEMETRIA" Style="{StaticResource SettingLabel}" Margin="0,4,0,6"/>
-                                <Border Style="{StaticResource Dropdown}" Margin="0,0,0,24">
-                                    <Grid>
-                                        <TextBlock Text="Automática (pelo jogo)" FontSize="12"/>
-                                        <TextBlock Text="&#xE70D;" Style="{StaticResource Icon}" FontSize="9" HorizontalAlignment="Right"/>
-                                    </Grid>
-                                </Border>
-                                <Button Style="{StaticResource AccentButton}" Content="TESTAR LEDS" Click="TestLeds_Click"/>
-                                <TextBlock Style="{StaticResource Hint}" Margin="0,18,0,0" Text="Modo, limites e telemetria chegam na Fase 7 (LEDs de RPM nos jogos). O teste já acende os LEDs de verdade."/>
+                                <RadioButton x:Name="LedModeProgressive" GroupName="Led" Content="PROGRESSIVO" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <RadioButton x:Name="LedModeShift" GroupName="Led" Content="PONTO DE TROCA (PISCA)" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <RadioButton x:Name="LedModeLimiter" GroupName="Led" Content="LIMITADOR" Margin="0,0,0,8" Click="LedSetting_Click"/>
+                                <TextBlock x:Name="LedModeHint" Style="{StaticResource Hint}" Margin="0,0,0,22"/>
+                                <c:SettingSlider x:Name="LedT1" Label="LED 1 ACENDE EM (% DA RPM)" Value="75"/>
+                                <c:SettingSlider x:Name="LedT2" Label="LED 2" Value="80"/>
+                                <c:SettingSlider x:Name="LedT3" Label="LED 3" Value="85"/>
+                                <c:SettingSlider x:Name="LedT4" Label="LED 4" Value="90"/>
+                                <c:SettingSlider x:Name="LedT5" Label="LED 5 = PONTO DE TROCA" Value="95"/>
+                                <CheckBox x:Name="LedGameCheck" Content="PERMITIR QUE OS JOGOS CONTROLEM OS LEDS (LUZ DE TROCA DO PRÓPRIO JOGO)" Margin="0,4,0,10" Click="LedSetting_Click"/>
+                                <CheckBox x:Name="LedPitCheck" Content="PISCAR COM O LIMITADOR DE BOX" Margin="0,0,0,10" Click="LedSetting_Click"/>
+                                <CheckBox x:Name="LedFuelCheck" Content="AVISAR COMBUSTÍVEL BAIXO (O LED DE FORA PISCA)" Margin="0,0,0,24" Click="LedSetting_Click"/>
+                                <Button Style="{StaticResource AccentButton}" Content="TESTAR LEDS" Click="TestLeds_Click" ToolTip="Simula uma acelerada até o corte de giro, com o modo e os limites acima"/>
+                                <TextBlock Text="TELEMETRIA DOS JOGOS" Style="{StaticResource SettingLabel}" Margin="0,28,0,8"/>
+                                <StackPanel x:Name="BeamNgTelemetryPanel">
+                                    <TextBlock x:Name="BeamNgTelemetryText" Style="{StaticResource Hint}"/>
+                                    <Button x:Name="BeamNgTelemetryButton" Style="{StaticResource FlatButton}" Margin="0,8,0,16" Click="BeamNgTelemetry_Click"/>
+                                </StackPanel>
+                                <StackPanel x:Name="ScsTelemetryPanel">
+                                    <TextBlock x:Name="ScsTelemetryText" Style="{StaticResource Hint}"/>
+                                    <Button x:Name="ScsTelemetryButton" Style="{StaticResource FlatButton}" Margin="0,8,0,16" Click="ScsTelemetry_Click"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Hint}" Text="Assetto Corsa / ACC: automático.&#10;F1 22–25: no jogo, Telemetria UDP ligada, IP 127.0.0.1, porta 20777.&#10;Forza: Data Out ligado, IP 127.0.0.1, porta 5300.&#10;Live for Speed: OutGauge para 127.0.0.1, porta 4444."/>
                             </StackPanel>
                         </ScrollViewer>
                         <Grid Grid.Column="1" Margin="40,40,40,40">

@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- g27ffb.dll (x64/ e x86/) gerada por src/native/build.ps1, para "Ativar force feedback" registrar a partir do app -->
-    <None Include="..\native\out\**\g27ffb.dll" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- g27ffb.dll (x64/ e x86/) e o plugin do ETS2/ATS (x64/), gerados por src/native/build.ps1 -->
+    <None Include="..\native\out\**\g27ffb.dll;..\native\out\**\g27hub_telemetry.dll" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
