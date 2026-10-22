@@ -61,6 +61,8 @@ public sealed class AppConfig
     public string ActiveId { get; set; } = Profile.DesktopId;
     /// <summary>Segurar os dois vermelhos de cima do volante alterna a rotação entre RotationSteps.</summary>
     public bool RotationShortcut { get; set; } = true;
+    /// <summary>Detector inteligente (Fase 6): avisos de compatibilidade ao abrir um jogo. Desligado de fábrica.</summary>
+    public bool DetectorOn { get; set; }
     public int[] RotationSteps { get; set; } = [180, 270, 540, 900];
     public List<Profile> Profiles { get; set; } = [];
 
@@ -129,7 +131,7 @@ public sealed class AppConfig
     public Profile? MatchRunning(IEnumerable<string> processNames)
     {
         var running = new HashSet<string>(processNames, StringComparer.OrdinalIgnoreCase);
-        return Profiles.FirstOrDefault(p => !p.IsDesktop && p.Exes.Any(e => running.Contains(Path.GetFileNameWithoutExtension(e))));
+        return Profiles.FirstOrDefault(p => !p.IsDesktop && p.Exes.Any(e => running.Contains(CompatDb.WithoutExe(Path.GetFileName(e)))));
     }
 
     public Profile AddGame(string exePath, string name)

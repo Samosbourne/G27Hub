@@ -585,7 +585,9 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
             fCond += (LONG)(-(LONGLONG)pos * centerSpring / 100);
         }
 
-        LONGLONG F = (LONGLONG)fDi * (drv->invert ? -1 : 1) + fCond;
+        /* G27 Hub: padrao = mesmo sentido do LGS, porque os jogos foram ajustados com ele (no BeamNG o
+           preset do G27 so funcionava com o "Invert" ligado; 21/10/2026). Invert = excecao por jogo. */
+        LONGLONG F = (LONGLONG)fDi * (drv->invert ? 1 : -1) + fCond;
         F = F * (LONGLONG)(allowGame ? drv->deviceGain : 10000) / 10000;
         F = F * (LONGLONG)drv->masterGain / 100;
 

@@ -38,6 +38,8 @@ src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G H
                      cadeado, seletor de perfis, menu ☰. Controls/RoadTest.cs: minijogo 3D de FFB (automático e livre).
                      MainWindow.Assignments.cs: aba Atribuições; o ButtonEngine (Core/Assignments.cs) roda na thread do volante
                      e manda teclas por SendInput com scan code (Core/Input.cs); pausado com o app em foco.
+                     MainWindow.Detector.cs: detector opcional (AppConfig.DetectorOn, desligado de fábrica) usando
+                     Core/Compat.cs (CompatDb embutida de data/compat-db.json, UserCompat, Preflight) e Core/GameScanner.cs.
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").

@@ -20,6 +20,16 @@ Relatórios de saída HID de 7 bytes (o app envia com o report ID `00` na frente
 ## Force feedback (Fase 2)
 A `g27ffb.dll` não usa os slots de efeito do volante: soma todos os efeitos DirectInput em software (mixer de 2 ms) e manda **uma** força constante pelo slot 1. Mola/amortecedor/inércia/atrito são calculados a partir da posição lida do próprio volante.
 
+### Sentido da força (decidido em 21/10/2026)
+A DLL usa por padrão o **mesmo sentido do LGS**: os presets dos jogos foram ajustados com ele. Prova: no BeamNG, o preset do G27
+(feito com o LGS) tem `isForceInverted: true`, e com a polaridade original do gcampa só funcionava ligando também o Invert do app.
+"Inverter força" no app agora é exceção por perfil. Molas/amortecedores calculados pela DLL a partir da posição não mudam de sentido.
+
+### Layout do LGS × G27 sem LGS
+O LGS reorganiza o que os jogos veem. Presets feitos com ele (ex.: BeamNG `settings/inputmaps/c29b046d.json`) esperam
+Y = acelerador, slider = embreagem, marchas = botões 9–14, ré = 15. Sem LGS: Z = acelerador, Y = embreagem, marchas 13–18, ré 23.
+O G27 Hub corrige o BeamNG (`BeamNgFix`); nos outros jogos, remapear uma vez nos controles.
+
 ## IDs
 - `046D:C294` — como o G27 aparece ao ligar (modo de compatibilidade Driving Force EX: 200°, pedais combinados).
 - `046D:C29B` — G27 em modo nativo.

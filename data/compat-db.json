@@ -1,0 +1,162 @@
+{
+  "versao": 1,
+  "atualizado": "2026-10-21",
+  "observacao": "Base embutida do G27 Hub (seção 8 do plano). Nomes de .exe marcados como a-confirmar ainda não foram vistos num PC. Resultados do próprio usuário ficam em %APPDATA%\\G27Hub\\compat-user.json e têm prioridade.",
+  "jogos": [
+    {
+      "id": "forza-horizon-5", "nome": "Forza Horizon 5", "exes": ["ForzaHorizon5.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://support.forza.net/hc/en-us/articles/4409263414547-FH5-Supported-Wheels-and-Devices",
+      "rotacaoSugerida": 540, "telemetria": "forza-dataout", "antiCheat": false,
+      "checklist": ["desligar-steam-input", "desconectar-outros-controles"],
+      "notas": "Reconhece o G27 por VID/PID (só no PC). O force feedback vai para o \"Device 1\"."
+    },
+    {
+      "id": "forza-horizon-6", "nome": "Forza Horizon 6", "exes": ["ForzaHorizon6.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://support.forza.net/hc/en-us/articles/51674028831251-FH6-Supported-Wheels-and-Devices",
+      "rotacaoSugerida": 540, "telemetria": "forza-dataout", "antiCheat": false,
+      "checklist": ["desligar-steam-input", "desconectar-outros-controles"],
+      "notas": "G27 com \"legacy support\" no PC. Nome do .exe a confirmar."
+    },
+    {
+      "id": "forza-motorsport-2023", "nome": "Forza Motorsport (2023)",
+      "exes": ["forza_steamworks_release_final.exe", "forza_gaming.desktop.x64_release_final.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://support.forza.net/hc/en-us/articles/21424060393107-Forza-Motorsport-Supported-Wheels-and-Devices",
+      "rotacaoSugerida": 900, "telemetria": "forza-dataout", "antiCheat": false,
+      "checklist": ["desligar-steam-input", "desconectar-outros-controles"],
+      "notas": "G27 na lista oficial de volantes do PC."
+    },
+    {
+      "id": "f1-25", "nome": "F1 25", "exes": ["F1_25.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://help.ea.com/en/articles/f1/f1-25/controllers-wheels-and-vr-support/",
+      "rotacaoSugerida": 360, "telemetria": "f1-udp", "antiCheat": true,
+      "checklist": ["desligar-steam-input", "steer-lock-igual"],
+      "notas": "G27 na lista de PC da EA, com preset."
+    },
+    {
+      "id": "ea-sports-wrc", "nome": "EA Sports WRC", "exes": ["WRC.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://www.overtake.gg/threads/ea-sports-wrc-%E2%80%93-supported-pc-and-console-controller-devices.265028/",
+      "rotacaoSugerida": 540, "telemetria": "wrc-udp", "antiCheat": true,
+      "checklist": ["desligar-steam-input", "steer-lock-igual"],
+      "notas": "G27 na lista de PC."
+    },
+    {
+      "id": "the-crew-motorfest", "nome": "The Crew Motorfest", "exes": ["TheCrewMotorfest.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "oficial",
+      "fonte": "https://www.ubisoft.com/en-us/game/the-crew/motorfest/news-updates/nV9xO7iPHNa7eHP3I2oBs/the-crew-motorfest-steering-wheel-and-peripheral-support",
+      "rotacaoSugerida": 540, "telemetria": "", "antiCheat": true,
+      "checklist": ["desconectar-outros-controles"],
+      "notas": "G27 na lista de PC da Ubisoft."
+    },
+    {
+      "id": "assetto-corsa", "nome": "Assetto Corsa", "exes": ["acs.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "ac-shm", "antiCheat": false,
+      "checklist": ["steer-lock-igual"],
+      "notas": "Preset do G27. O Custom Shaders Patch tem extensão de LEDs do G27. O jogo é o acs.exe (o AssettoCorsa.exe é só o launcher)."
+    },
+    {
+      "id": "assetto-corsa-competizione", "nome": "Assetto Corsa Competizione", "exes": ["AC2-Win64-Shipping.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "testado", "fonte": "https://github.com/gcampa/g27-ffb-driverless",
+      "rotacaoSugerida": 900, "telemetria": "ac-shm", "antiCheat": false,
+      "checklist": ["steer-lock-igual"],
+      "notas": "FFB testado com a DLL sem driver (gcampa). Steer lock 900, linearidade 1.0, ganho 70–85%."
+    },
+    {
+      "id": "assetto-corsa-evo", "nome": "Assetto Corsa EVO", "exes": ["AssettoCorsaEVO.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "ac-shm", "antiCheat": false,
+      "checklist": ["steer-lock-igual"],
+      "notas": "Relatos de FFB funcionando no G27. Nome do .exe a confirmar."
+    },
+    {
+      "id": "iracing", "nome": "iRacing", "exes": ["iRacingSim64DX11.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "iracing-sdk", "antiCheat": true,
+      "checklist": ["steer-lock-igual"],
+      "notas": "Deixe 900° no app; o iRacing ajusta a rotação de cada carro."
+    },
+    {
+      "id": "rfactor-2", "nome": "rFactor 2", "exes": ["rFactor2.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "a-confirmar", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "rf2-plugin", "antiCheat": false,
+      "checklist": ["sem-restos-ghub", "steer-lock-igual"],
+      "notas": "Conflito conhecido com restos do SDK do G HUB."
+    },
+    {
+      "id": "le-mans-ultimate", "nome": "Le Mans Ultimate", "exes": ["Le Mans Ultimate.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "a-confirmar", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "rf2-plugin", "antiCheat": false,
+      "checklist": ["sem-restos-ghub", "steer-lock-igual"],
+      "notas": "Mesmo motor do rFactor 2: conflito conhecido com restos do SDK do G HUB."
+    },
+    {
+      "id": "euro-truck-simulator-2", "nome": "Euro Truck Simulator 2", "exes": ["eurotrucks2.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "scs-sdk", "antiCheat": false,
+      "checklist": ["mola-centralizadora"],
+      "notas": "Atenção à mola de centragem: o jogo tem a própria; deixe a do app baixa."
+    },
+    {
+      "id": "american-truck-simulator", "nome": "American Truck Simulator", "exes": ["amtrucks.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "scs-sdk", "antiCheat": false,
+      "checklist": ["mola-centralizadora"],
+      "notas": "Atenção à mola de centragem: o jogo tem a própria; deixe a do app baixa."
+    },
+    {
+      "id": "beamng-drive", "nome": "BeamNG.drive", "exes": ["BeamNG.drive.x64.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "testado", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "beamng-outgauge", "antiCheat": false,
+      "checklist": ["steer-lock-igual", "corrigir-controles-beamng"],
+      "notas": "O mapa do G27 que vem no jogo (settings/inputmaps/c29b046d.json) foi feito com o LGS: sem ele, acelerador e embreagem trocam e as marchas caem em outros botões. O G27 Hub corrige o .diff do usuário (com backup)."
+    },
+    {
+      "id": "automobilista-2", "nome": "Automobilista 2", "exes": ["AMS2AVX.exe", "AMS2.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "a-confirmar", "fonte": "",
+      "rotacaoSugerida": 900, "telemetria": "ams2-shm", "antiCheat": false,
+      "checklist": ["steer-lock-igual"],
+      "notas": "Configure o volante uma vez em Opções → Controles."
+    },
+    {
+      "id": "dirt-rally-2", "nome": "DiRT Rally 2.0", "exes": ["dirtrally2.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 540, "telemetria": "codemasters-udp", "antiCheat": false,
+      "checklist": ["steer-lock-igual"],
+      "notas": "Preset do G27."
+    },
+    {
+      "id": "dirt-5", "nome": "DiRT 5", "exes": ["DIRT5.exe"],
+      "status": "nativo", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 540, "telemetria": "codemasters-udp", "antiCheat": false,
+      "checklist": ["sem-restos-ghub"],
+      "notas": "Funciona sem restos do G HUB instalados."
+    },
+    {
+      "id": "wreckfest", "nome": "Wreckfest", "exes": ["Wreckfest_x64.exe", "Wreckfest.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "",
+      "rotacaoSugerida": 540, "telemetria": "", "antiCheat": false,
+      "checklist": [],
+      "notas": "Configure o volante uma vez em Opções → Controles."
+    },
+    {
+      "id": "wreckfest-2", "nome": "Wreckfest 2", "exes": ["Wreckfest2.exe"],
+      "status": "directinput", "modoRecomendado": "padrao", "confianca": "comunidade", "fonte": "https://github.com/Jabelius/OpenG27",
+      "rotacaoSugerida": 540, "telemetria": "wreckfest2", "antiCheat": false,
+      "checklist": [],
+      "notas": "O OpenG27 tem FFB por telemetria no Wreckfest 2. Nome do .exe a confirmar."
+    },
+    {
+      "id": "need-for-speed-unbound", "nome": "Need for Speed Unbound", "exes": ["NeedForSpeedUnbound.exe"],
+      "status": "limitado", "modoRecomendado": "padrao", "confianca": "comunidade",
+      "fonte": "https://steamcommunity.com/app/1846380/discussions/0/4637114422843801428",
+      "rotacaoSugerida": 540, "telemetria": "", "antiCheat": true,
+      "checklist": [],
+      "notas": "Relato: o G27 é reconhecido como controle de Xbox, sem FFB. Suporte a volante fraco em qualquer modo."
+    }
+  ]
+}

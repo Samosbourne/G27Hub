@@ -65,6 +65,9 @@ public partial class App : Application
         return tray;
     }
 
+    /// <summary>Notificação do Windows (balão da bandeja), para quando a janela está escondida.</summary>
+    public void Balloon(string title, string text) => _tray?.ShowBalloonTip(6000, title, text, Forms.ToolTipIcon.Info);
+
     protected override void OnExit(ExitEventArgs e)
     {
         if (_tray != null) _tray.Visible = false;

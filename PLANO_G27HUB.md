@@ -413,12 +413,13 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 - [x] (F) Atalho de rotação no volante (combinação de botões alterna 180/270/540/900, com toast e LEDs).
 
 ### Fase 6 — Detector inteligente + base de compatibilidade
-- [ ] `compat-db.json` a partir da seção 8 (com fontes).
-- [ ] Monitor de processos, verificações de pré-voo, notificações (in-app + Windows), "Não avisar para este jogo".
-- [ ] Pergunta pós-sessão 👍/👎 → `compat-user.json`.
-- [ ] "Adicionar jogo" já preenche o perfil pela base.
-- [ ] (F) Detectar jogos instalados (Steam, Epic, Xbox/Microsoft Store, pastas comuns); detecção automática liga/desliga.
-- [ ] (F) Dicas por jogo ("configurações recomendadas no jogo") e aviso de steer lock diferente do app.
+> Decisão do John (21/10/2026): o detector é **opcional e vem desligado** (Configurações do app). A troca automática de perfil (5a) é independente.
+- [x] `compat-db.json` a partir da seção 8 (com fontes).
+- [x] Monitor de processos, verificações de pré-voo, notificações (in-app + Windows), "Não avisar para este jogo". Steam Input: lembrete quando a Steam está aberta (não lê a config da Steam).
+- [x] Pergunta pós-sessão 👍/👎 → `compat-user.json`.
+- [x] "Adicionar jogo" já preenche o perfil pela base.
+- [x] (F) Detectar jogos instalados (Steam, Epic, Xbox/Microsoft Store), por botão; detector liga/desliga.
+- [x] (F) Dicas por jogo ("configurações recomendadas no jogo") e aviso de steer lock diferente do app.
 
 **Aceite:** abrir o Forza mostra "Compatível — Modo Padrão"; abrir um jogo marcado `precisa-compat-total` mostra a recomendação sem ativar nada; com um controle de Xbox conectado, o aviso do Device 1 aparece.
 

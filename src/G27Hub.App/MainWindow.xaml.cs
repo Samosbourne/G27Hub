@@ -298,6 +298,7 @@ public partial class MainWindow : Window
         StartWithWindowsCheck.IsChecked = AutoStart.Enabled;
         CloseToTrayCheck.IsChecked = _config.CloseToTray;
         NotificationsCheck.IsChecked = _config.Notifications;
+        DetectorCheck.IsChecked = _config.DetectorOn;
         UpdateArc(w.Range, 0);
         UpdateProfileHeader();
         RefreshAssignmentsUi();
@@ -821,23 +822,24 @@ public partial class MainWindow : Window
 
     // ================= notificações (5.7) =================
 
-    void ShowToast(string icon, string kind, string title, string body, params string[] actions)
+    void ShowToast(string icon, string kind, string title, string body, params string[] actions) =>
+        ShowToast(icon, kind, title, body, TimeSpan.FromSeconds(7), (actions.Length == 0 ? ["OK"] : actions)
+            .Select(a => (a, a == "VER DETALHES" ? () => { if (ConsolePanel.Visibility != Visibility.Visible) ToggleConsole(true); } : (Action?)null)).ToArray());
+
+    /// <summary>Notificação com botões de ação próprios (cada botão fecha a notificação e roda a ação).</summary>
+    void ShowToast(string icon, string kind, string title, string body, TimeSpan duration, params (string Label, Action? OnClick)[] actions)
     {
         if (!_config.Notifications && kind != "Error") return;
         ToastIcon.Text = icon;
-        ToastMark.Text = kind switch { "Ok" => "", "Warn" => "", "Error" => "", _ => "" };
+        ToastMark.Text = kind switch { "Ok" => "\uE73E", "Warn" => "\uE7BA", "Error" => "\uE783", _ => "\uEA80" };
         ToastMark.Foreground = (Brush)FindResource(kind);
         ToastTitle.Text = title;
         ToastBody.Text = body;
         ToastActions.Children.Clear();
-        foreach (var a in actions.Length == 0 ? ["OK"] : actions)
+        foreach (var (label, onClick) in actions)
         {
-            var b = new Button { Content = a, Style = (Style)FindResource("LinkButton") };
-            b.Click += (_, _) =>
-            {
-                HideToast();
-                if (a == "VER DETALHES" && ConsolePanel.Visibility != Visibility.Visible) ToggleConsole(true);
-            };
+            var b = new Button { Content = label, Style = (Style)FindResource("LinkButton") };
+            b.Click += (_, _) => { HideToast(); onClick?.Invoke(); };
             ToastActions.Children.Add(b);
         }
 
@@ -845,6 +847,7 @@ public partial class MainWindow : Window
         Toast.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200)));
         ToastShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(40, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = new CubicEase() });
         _toastTimer.Stop();
+        _toastTimer.Interval = duration;
         _toastTimer.Start();
     }
 

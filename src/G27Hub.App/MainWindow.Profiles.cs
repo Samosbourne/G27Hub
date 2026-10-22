@@ -39,6 +39,12 @@ public partial class MainWindow
 
     void OnProcesses(string[] names)
     {
+        SwitchProfileFor(names);
+        DetectGames(names);
+    }
+
+    void SwitchProfileFor(string[] names)
+    {
         var match = _config.MatchRunning(names);
         if (match?.Id == _detectedId) return; // só reage quando o jogo abre ou fecha
         var hadGame = _detectedId != null;
@@ -147,7 +153,7 @@ public partial class MainWindow
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = p.Name, FontSize = 12.5, Foreground = active ? (Brush)FindResource("Accent") : Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis });
             if (!p.IsDesktop)
-                text.Children.Add(new TextBlock { Text = p.Exes.Count > 0 ? string.Join(", ", p.Exes) : "sem .exe (não troca sozinho)", FontSize = 10.5, Foreground = (Brush)FindResource("TextFaint"), TextTrimming = TextTrimming.CharacterEllipsis });
+                text.Children.Add(new TextBlock { Text = (p.Exes.Count > 0 ? string.Join(", ", p.Exes) : "sem .exe (não troca sozinho)") + (p.Exes.Select(_db.Find).FirstOrDefault(x => x != null) is { } entry ? $" · {entry.Status}" : ""), FontSize = 10.5, Foreground = (Brush)FindResource("TextFaint"), TextTrimming = TextTrimming.CharacterEllipsis });
             Grid.SetColumn(text, 1);
             row.Children.Add(text);
 
@@ -237,11 +243,7 @@ public partial class MainWindow
         if (dlg.ShowDialog(this) != true) return;
         var info = FileVersionInfo.GetVersionInfo(dlg.FileName);
         var name = !string.IsNullOrWhiteSpace(info.ProductName) ? info.ProductName.Trim() : Path.GetFileNameWithoutExtension(dlg.FileName);
-        var p = _config.AddGame(dlg.FileName, name);
-        _config.Save();
-        AppLog.Ok("PERFIL", $"Jogo adicionado: {p.Name} ({p.Exes[0]})");
-        ShowToast(Initials(p.Name), "Ok", $"Perfil criado: {p.Name}", "Ele entra sozinho quando o jogo abrir. Para ajustes próprios, marque \"Usar configurações especiais\" na aba Volante.");
-        _detectedId = "?"; // se o jogo já estiver aberto, troca na próxima varredura
+        AddGameProfile(dlg.FileName, name);
     }
 
     ImageSource? ProfileIcon(Profile p)

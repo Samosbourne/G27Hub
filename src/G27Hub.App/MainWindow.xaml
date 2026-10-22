@@ -124,6 +124,7 @@
                         <Rectangle Height="1" Fill="#333" Margin="0,6"/>
                         <CheckBox x:Name="LockCheckPopup" Content="TRAVAR NESTE PERFIL (SEM TROCA AUTOMÁTICA)" Margin="8,4,8,8" Click="LockToggle_Click"/>
                         <Button Style="{StaticResource LinkButton}" Content="+  ADICIONAR JOGO (.EXE)" Margin="8,4,0,6" Click="AddGame_Click"/>
+                        <Button Style="{StaticResource LinkButton}" Content="PROCURAR JOGOS INSTALADOS" Margin="8,4,0,6" Click="FindInstalled_Click"/>
                         <Button Style="{StaticResource LinkButton}" Content="IMPORTAR PERFIL (.G27PROFILE)" Margin="8,4,0,6" Click="ImportProfile_Click"/>
                     </StackPanel>
                 </Border>
@@ -159,6 +160,8 @@
                         <CheckBox x:Name="StartWithWindowsCheck" Content="INICIAR COM O WINDOWS (NA BANDEJA)" Margin="0,0,0,10" Click="StartWithWindows_Click"/>
                         <CheckBox x:Name="CloseToTrayCheck" Content="O X FECHA PARA A BANDEJA (O VOLANTE CONTINUA CONFIGURADO)" Margin="0,0,0,10" Click="CloseToTray_Click"/>
                         <CheckBox x:Name="NotificationsCheck" Content="NOTIFICAÇÕES (ERROS SEMPRE APARECEM)" Margin="0,0,0,10" Click="Notifications_Click"/>
+                        <CheckBox x:Name="DetectorCheck" Content="DETECTOR INTELIGENTE DE JOGOS (AVISOS DE COMPATIBILIDADE AO ABRIR UM JOGO)" Margin="0,0,0,10" Click="DetectorCheck_Click"
+                                  ToolTip="Ao abrir um jogo conhecido: compatibilidade, modo recomendado, controle de Xbox, Steam Input, rotação sugerida; ao fechar, pergunta se funcionou. Desligado de fábrica."/>
                         <CheckBox x:Name="LockCheckSettings" Content="PERFIL PERSISTENTE: TRAVAR O PERFIL ATUAL" Click="LockToggle_Click"/>
                     </StackPanel>
                 </Border>
@@ -374,7 +377,7 @@
                                 <CheckBox x:Name="AllowGameCheck" Content="PERMITIR QUE O JOGO AJUSTE CONFIGURAÇÕES" IsChecked="True" Margin="0,4,0,14"
                                           ToolTip="Ligado: o jogo pode baixar a intensidade geral do force feedback pelas opções dele. Desligado: vale só a INTENSIDADE GLOBAL daqui."/>
                                 <CheckBox x:Name="InvertCheck" Content="INVERTER FORÇA" Margin="0,0,0,24"
-                                          ToolTip="Use se o volante puxar para o batente em vez de voltar ao centro"/>
+                                          ToolTip="O padrão já é o mesmo sentido do LGS (como os jogos foram ajustados). Marque só se um jogo empurrar o volante para o batente em vez de voltar ao centro."/>
                                 <Button Style="{StaticResource AccentButton}" Content="TESTE AUTOMÁTICO DE FORCE FEEDBACK" Click="StartFfbTest_Click" Margin="0,0,0,10"
                                         ToolTip="Pista 3D de ~27 s: o carro anda sozinho por zebra, lombadas, grama, terra e uma batida. Segure o volante."/>
                                 <Button Style="{StaticResource AccentButton}" Content="DIREÇÃO LIVRE (VOCÊ DIRIGE)" Click="StartFreeDrive_Click" Margin="0,0,0,10"
