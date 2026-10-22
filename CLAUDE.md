@@ -36,6 +36,8 @@ src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G H
                      perfil ativo (volante + HKCU\Software\G27Hub\FFB, que a DLL relê a cada 1 s), console real, bandeja,
                      iniciar com o Windows (HKCU Run). MainWindow.Profiles.cs: troca automática (varre processos a cada 2 s),
                      cadeado, seletor de perfis, menu ☰. Controls/RoadTest.cs: minijogo 3D de FFB (automático e livre).
+                     MainWindow.Assignments.cs: aba Atribuições; o ButtonEngine (Core/Assignments.cs) roda na thread do volante
+                     e manda teclas por SendInput com scan code (Core/Input.cs); pausado com o app em foco.
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").

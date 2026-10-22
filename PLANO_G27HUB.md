@@ -403,13 +403,14 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 - [x] (F) Configurações do app: notificações liga/desliga.
 
 ### Fase 5b — Atribuições
-- [ ] Teclas simples e com modificadores (`SendInput`); arrastar e soltar na imagem.
-- [ ] (F) Macros: gravar, atrasos, repetir enquanto segura, liga/desliga, sequência.
-- [ ] (F) Ações do sistema: mídia, volume, abrir programa, abrir site; trocar de perfil pelo volante.
-- [ ] (F) Camada secundária (segurar um botão = "shift" que dobra as funções).
-- [ ] (F) Desativar atribuições dentro do jogo (por perfil).
-- [ ] (F) Pedal como botão (passar de X% = tecla); câmbio H como sequencial (marcha acima/abaixo = teclas).
-- [ ] (F) Atalho de rotação no volante (combinação de botões alterna 180/270/540/900, com toast e LEDs).
+- [x] Teclas simples e com modificadores (`SendInput` com scan code); escolher o botão clicando na imagem, na lista ou apertando o botão.
+- [ ] Arrastar e soltar ações na imagem (o G HUB faz assim; hoje é clique).
+- [x] (F) Macros: gravar, atrasos, repetir enquanto segura, liga/desliga, sequência.
+- [x] (F) Ações do sistema: mídia, volume, abrir programa, abrir site; trocar de perfil pelo volante.
+- [x] (F) Camada secundária (segurar um botão = "shift" que dobra as funções).
+- [x] (F) Desativar atribuições dentro do jogo (por perfil).
+- [x] (F) Pedal como botão (passar de X% = tecla); câmbio H como sequencial (marcha acima/abaixo = teclas).
+- [x] (F) Atalho de rotação no volante (combinação de botões alterna 180/270/540/900, com toast e LEDs).
 
 ### Fase 6 — Detector inteligente + base de compatibilidade
 - [ ] `compat-db.json` a partir da seção 8 (com fontes).

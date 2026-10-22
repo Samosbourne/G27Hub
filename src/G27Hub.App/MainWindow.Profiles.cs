@@ -57,6 +57,7 @@ public partial class MainWindow
     void ActivateProfile(Profile p, bool auto)
     {
         if (_config.ActiveId == p.Id && auto) return;
+        _engine?.ReleaseAll(); // não deixar tecla presa do perfil anterior
         _config.ActiveId = p.Id;
         _config.Save();
         LoadSettingsIntoUi();

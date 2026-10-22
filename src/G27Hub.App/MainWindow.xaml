@@ -288,6 +288,7 @@
                                 <c:SettingSlider x:Name="AutocenterSlider" Label="CENTRALIZAÇÃO DA FORÇA DA MOLA" Value="20"/>
                                 <CheckBox x:Name="AutocenterCheck" Content="MOLA CENTRALIZADORA PARA JOGOS SEM FEEDBACK DE FORÇA" Margin="0,4,0,24"
                                           ToolTip="Mola do próprio volante. Jogos com force feedback desligam a mola enquanto estão abertos."/>
+                                <CheckBox x:Name="RotationShortcutCheck" Content="ATALHO NO VOLANTE: SEGURE OS DOIS VERMELHOS DE CIMA PARA ALTERNAR 180 / 270 / 540 / 900°" Margin="0,0,0,24" Click="RotationShortcut_Click"/>
                                 <Button Style="{StaticResource FlatButton}" Content="RESTAURAR A CONFIGURAÇÃO ORIGINAL" Click="RestoreWheel_Click"/>
                                 <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
                                     <TextBlock Style="{StaticResource Hint}">
@@ -325,6 +326,9 @@
                                 <c:SettingSlider Label="SENSIBILIDADE DO ACELERADOR" Value="50" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Modo Compatibilidade Total"/>
                                 <CheckBox Content="PEDAIS COMBINADOS" Margin="0,4,0,24" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Chega com o Modo Compatibilidade Total (Fase 8)"/>
                                 <Button Style="{StaticResource FlatButton}" Content="CALIBRAR PEDAIS" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Assistente de calibração: Fase 9"/>
+                                <TextBlock Text="PEDAL COMO TECLA" Style="{StaticResource SettingLabel}" Margin="0,24,0,4"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12" Text="Ex.: embreagem como freio de mão em jogos de rally. Vale para o perfil ativo."/>
+                                <StackPanel x:Name="PedalKeysPanel"/>
                                 <Border Background="#191919" CornerRadius="3" Padding="12,10" Margin="0,26,0,0">
                                     <TextBlock Style="{StaticResource Hint}" Text="Sensibilidade dos pedais só no Modo Compatibilidade Total. Pedais combinados no Modo Padrão usam o modo antigo (Driving Force EX) e o jogo perde a embreagem."/>
                                 </Border>
@@ -417,6 +421,9 @@
                                 <RadioButton GroupName="Shift" Content="H (6 MARCHAS + RÉ)" IsChecked="True" Margin="0,0,0,10"/>
                                 <RadioButton GroupName="Shift" Content="SEQUENCIAL" Margin="0,0,0,22"/>
                                 <TextBlock Style="{StaticResource Hint}" Text="No G27, o modo sequencial é ligado empurrando a manopla para baixo e girando o anel. O app só mostra o modo atual."/>
+                                <TextBlock Text="CÂMBIO H COMO SEQUENCIAL (TECLAS)" Style="{StaticResource SettingLabel}" Margin="0,24,0,4"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12" Text="Para jogos que só aceitam marcha acima/abaixo: engatar no H manda as teclas até chegar na marcha. Ponto morto é ignorado. Vale para o perfil ativo."/>
+                                <StackPanel x:Name="SequentialPanel"/>
                             </StackPanel>
                         </ScrollViewer>
                         <Grid Grid.Column="1" Margin="60,40,60,40">
@@ -482,17 +489,18 @@
                         </Grid.ColumnDefinitions>
                         <ScrollViewer Style="{StaticResource PanelScroll}">
                             <StackPanel Margin="22,20,22,22">
-                                <TextBlock Text="Atribuições" Style="{StaticResource SectionTitle}" Margin="0,0,0,18"/>
-                                <StackPanel x:Name="AssignList" Margin="-22,0,-22,22"/>
-                                <TextBlock x:Name="AssignTitle" Text="BOTÃO 2" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Act" Content="PADRÃO (O JOGO DECIDE)" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Act" Content="TECLA" IsChecked="True" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Act" Content="COMBINAÇÃO DE TECLAS" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Act" Content="MACRO" Margin="0,0,0,10"/>
-                                <RadioButton GroupName="Act" Content="DESATIVAR" Margin="0,0,0,16"/>
-                                <Border Style="{StaticResource Dropdown}" BorderBrush="{StaticResource Accent}" BorderThickness="1">
-                                    <TextBlock Text="Espaço" FontSize="12"/>
+                                <TextBlock Text="Atribuições" Style="{StaticResource SectionTitle}" Margin="0,0,0,14"/>
+                                <CheckBox x:Name="AssignOnCheck" Content="ATRIBUIÇÕES LIGADAS NESTE PERFIL" Margin="0,0,0,8" Click="AssignOn_Click"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,14"
+                                           Text="O jogo continua vendo o botão. Use botões que o jogo não usa, ou desligue as atribuições no perfil do jogo. Com o G27 Hub em foco elas ficam pausadas: teste no Bloco de Notas."/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <RadioButton x:Name="LayerNormal" GroupName="Layer" Content="CAMADA NORMAL" IsChecked="True" Margin="0,0,16,0" Click="Layer_Click"/>
+                                    <RadioButton x:Name="LayerShift" GroupName="Layer" Content="CAMADA SHIFT" Click="Layer_Click"/>
+                                </StackPanel>
+                                <Border Background="#191919" CornerRadius="3" Padding="12" Margin="0,0,0,16">
+                                    <StackPanel x:Name="AssignEditor"/>
                                 </Border>
+                                <StackPanel x:Name="AssignList" Margin="-22,0,-22,0"/>
                             </StackPanel>
                         </ScrollViewer>
                         <Grid Grid.Column="1" Margin="40,30,40,40">
@@ -502,9 +510,9 @@
                             </Grid.RowDefinitions>
                             <c:G27Wheel x:Name="AssignWheel" ShowHotspots="True" MaxWidth="520"/>
                             <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,16,0,0">
-                                <TextBlock x:Name="LastButton" Text="Aperte um botão no volante" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="LastButton" Text="Aperte um botão no volante ou no câmbio para escolher" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                 <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,4,0,0"
-                                           Text="As ações (tecla, combinação, macro) passam a funcionar na Fase 5."/>
+                                           Text="Ou clique num número na imagem / na lista à esquerda."/>
                             </StackPanel>
                         </Grid>
                     </Grid>

@@ -63,7 +63,6 @@ public partial class MainWindow : Window
         BuildLedBar();
         BuildForceGraph();
         BuildButtonGrid();
-        BuildAssignments();
         BuildQuickTests([]);
 
         foreach (var l in AppLog.Memory.Snapshot()) _log.Add(l);
@@ -79,7 +78,7 @@ public partial class MainWindow : Window
         foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck, AllowGameCheck })
             c.Click += (_, _) => SettingChanged();
         FfbEnabled.Click += (_, _) => ToggleFfb();
-        AssignWheel.HotspotClicked += b => { AssignWheel.Highlight(b); AssignTitle.Text = $"BOTÃO {b}"; };
+        AssignWheel.HotspotClicked += SelectButton;
         _applyTimer.Tick += (_, _) => { _applyTimer.Stop(); ApplySettings(); };
         _toastTimer.Tick += (_, _) => HideToast();
         StateChanged += (_, _) =>
@@ -95,6 +94,7 @@ public partial class MainWindow : Window
         UpdateProfileHeader();
         if (!connect) return;
         StartProfileWatcher();
+        StartAssignments();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
         CompositionTarget.Rendering += OnFrame;
@@ -166,8 +166,8 @@ public partial class MainWindow : Window
                 break;
             case "atribuicoes":
                 AssignWheel.SetPressed(s.Buttons);
-                var pressed = s.Buttons.Except(_prevButtons).FirstOrDefault();
-                if (pressed != 0) LastButton.Text = $"Botão {pressed} apertado";
+                var pressed = ButtonEngine.Pressed(s).Except(_prevButtons).FirstOrDefault();
+                if (pressed != 0 && !CapturingKeys) SelectButton(pressed); // apertar no volante escolhe o botão
                 break;
             case "teste":
                 TestAngle.Text = $"{_shownAngle:+0.0;-0.0;0.0}°";
@@ -190,7 +190,7 @@ public partial class MainWindow : Window
                 _hatText.Text = s.Hat < 0 ? "Direcional: solto" : $"Direcional: {new[] { "cima", "cima-direita", "direita", "baixo-direita", "baixo", "baixo-esquerda", "esquerda", "cima-esquerda" }[s.Hat % 8]}";
                 break;
         }
-        _prevButtons = s.Buttons;
+        _prevButtons = ButtonEngine.Pressed(s).ToArray();
     }
 
     /// <summary>Índices do desenho do câmbio: 0–3 vermelhos, 4 direcional, 5–8 pretos.</summary>
@@ -300,6 +300,7 @@ public partial class MainWindow : Window
         NotificationsCheck.IsChecked = _config.Notifications;
         UpdateArc(w.Range, 0);
         UpdateProfileHeader();
+        RefreshAssignmentsUi();
         _loading = wasLoading;
     }
 
@@ -663,23 +664,6 @@ public partial class MainWindow : Window
     }
 
     // ================= atribuições e perfis (Fase 5) =================
-
-    void BuildAssignments()
-    {
-        string[] pos = ["cima", "meio", "baixo"];
-        var buttons = G27Buttons.WheelLeft.Select((b, i) => $"Botão {b} · esquerda, {pos[i]}")
-            .Concat(G27Buttons.WheelRight.Select((b, i) => $"Botão {b} · direita, {pos[i]}"))
-            .Append($"Botão {G27Buttons.PaddleLeft} · borboleta esquerda")
-            .Append($"Botão {G27Buttons.PaddleRight} · borboleta direita");
-        foreach (var button in buttons)
-        {
-            var g = new Grid();
-            g.Children.Add(new TextBlock { Text = button, FontSize = 12.5 });
-            g.Children.Add(new TextBlock { Text = "Padrão", FontSize = 12, Foreground = (Brush)FindResource("TextDim"), HorizontalAlignment = HorizontalAlignment.Right });
-            AssignList.Children.Add(new Border { Padding = new Thickness(22, 8, 22, 8), Child = g });
-        }
-        AssignTitle.Text = "ESCOLHA UM BOTÃO NA IMAGEM";
-    }
 
     // ================= console (seção 6) =================
 

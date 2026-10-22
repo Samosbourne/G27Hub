@@ -35,6 +35,16 @@ public sealed class Profile
     public bool UseOwnSettings { get; set; }
     public WheelSettings Wheel { get; set; } = new();
 
+    // Fase 5b: atribuições (número do botão → ação; o direcional usa 101–104, ver ButtonEngine)
+    public bool AssignmentsOn { get; set; } = true;
+    public Dictionary<int, ButtonAction> Actions { get; set; } = [];
+    /// <summary>Camada 2: valem enquanto o botão ShiftButton estiver apertado (0 = sem shift).</summary>
+    public int ShiftButton { get; set; }
+    public Dictionary<int, ButtonAction> ShiftActions { get; set; } = [];
+    /// <summary>Embreagem, freio, acelerador.</summary>
+    public List<PedalKey> Pedals { get; set; } = [new(), new(), new()];
+    public SequentialShift Sequential { get; set; } = new();
+
     [JsonIgnore] public bool IsDesktop => Id == DesktopId;
 }
 
@@ -49,6 +59,9 @@ public sealed class AppConfig
     /// <summary>Cadeado: trava o perfil ativo, sem troca automática.</summary>
     public bool Locked { get; set; }
     public string ActiveId { get; set; } = Profile.DesktopId;
+    /// <summary>Segurar os dois vermelhos de cima do volante alterna a rotação entre RotationSteps.</summary>
+    public bool RotationShortcut { get; set; } = true;
+    public int[] RotationSteps { get; set; } = [180, 270, 540, 900];
     public List<Profile> Profiles { get; set; } = [];
 
     // legado da Fase 4, só lido para migrar
