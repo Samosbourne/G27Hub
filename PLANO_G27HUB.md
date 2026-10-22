@@ -394,13 +394,13 @@ Cada fase termina com **critérios de aceite** e roteiro em `docs/testes/faseN.m
 > Itens abaixo marcados com (F) vêm de `FUNCIONALIDADES_G29_PARA_G27.md` (complemento deste plano).
 
 ### Fase 5a — Perfis
-- [ ] Perfis JSON; "Desktop: Padrão" + perfis por jogo; troca automática.
-- [ ] (F) Criar, duplicar, renomear, excluir perfil; adicionar jogo pelo `.exe` com ícone extraído.
-- [ ] (F) Cadeado: trava o perfil atual (sem troca automática); perfil persistente (Configurações do app).
-- [ ] (F) Exportar/importar `.g27profile`.
-- [ ] (F) "Usar configurações especiais do volante" por perfil (rotação, mola, FFB sobrescrevem o global).
-- [ ] (F) Menu ☰ (Jogos e apps, Configurações, Console, Sobre); página da engrenagem do card (nome, versão USB, teste de LEDs, calibração, modo).
-- [ ] (F) Configurações do app: notificações liga/desliga.
+- [x] Perfis JSON; "Desktop: Padrão" + perfis por jogo; troca automática.
+- [x] (F) Criar, duplicar, renomear, excluir perfil; adicionar jogo pelo `.exe` com ícone extraído.
+- [x] (F) Cadeado: trava o perfil atual (sem troca automática); perfil persistente (Configurações do app).
+- [x] (F) Exportar/importar `.g27profile`.
+- [x] (F) "Usar configurações especiais do volante" por perfil (rotação, mola, FFB sobrescrevem o global).
+- [x] (F) Menu ☰ (Jogos e apps, Configurações, Console, Sobre); página da engrenagem do card (nome, versão USB, teste de LEDs, calibração, modo).
+- [x] (F) Configurações do app: notificações liga/desliga.
 
 ### Fase 5b — Atribuições
 - [ ] Teclas simples e com modificadores (`SendInput`); arrastar e soltar na imagem.

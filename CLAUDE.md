@@ -28,11 +28,14 @@ Escondido; abre pelo ícone de terminal, **Ctrl+Shift+L** ou "Ver detalhes" de u
 ```
 src/G27Hub.Logging   AppLog: Serilog (arquivo rotativo) + buffer em memória; FfbLogServer (pipe da DLL)
 src/G27Hub.Core      protocolo (G27Commands), dispositivo (G27Device), estado (G27State),
-                     registro do FFB em HKCU (FfbRegistration), memória compartilhada (FfbShared)
+                     registro do FFB em HKCU (FfbRegistration), memória compartilhada (FfbShared),
+                     perfis e config do app (Profiles.cs: AppConfig/Profile/WheelSettings → %APPDATA%\G27Hub\config.json)
 src/G27Hub.Cli       g27cli
 src/G27Hub.App       WPF (sem WPF-UI: estilos próprios em App.xaml imitam o G HUB); desenhos próprios do G27/pedais/câmbio
-                     em Controls/. MainWindow lê o G27Device a 60 fps (CompositionTarget.Rendering), aplica ajustes
-                     (config.json + HKCU\Software\G27Hub\FFB), console real, bandeja (NotifyIcon), iniciar com o Windows (HKCU Run).
+                     em Controls/. MainWindow lê o G27Device a 60 fps (CompositionTarget.Rendering), aplica os ajustes do
+                     perfil ativo (volante + HKCU\Software\G27Hub\FFB, que a DLL relê a cada 1 s), console real, bandeja,
+                     iniciar com o Windows (HKCU Run). MainWindow.Profiles.cs: troca automática (varre processos a cada 2 s),
+                     cadeado, seletor de perfis, menu ☰. Controls/RoadTest.cs: minijogo 3D de FFB (automático e livre).
                      "--shots <pasta> [--live]" salva PNG de cada tela; "--minimized" abre só na bandeja.
 src/native/g27ffb    DirectInput effect driver em C (base: gcampa/g27-ffb-driverless, MIT, ver LICENSE-gcampa.txt);
                      hub.c = log pelo pipe + memória compartilhada. effects.c é o motor de efeitos (o "ffb-core").

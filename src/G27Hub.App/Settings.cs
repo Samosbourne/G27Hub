@@ -1,47 +1,17 @@
-using System.IO;
-using System.Text.Json;
 using G27Hub.Logging;
 using Microsoft.Win32;
 
 namespace G27Hub.App;
 
 /// <summary>
-/// Ajustes do volante do perfil "Desktop: Padrão", em %APPDATA%\G27Hub\config.json.
-/// ponytail: um perfil só; a Fase 5 troca isto por perfis por jogo.
-/// Os ajustes de FFB moram no registro (HKCU\Software\G27Hub\FFB), que é o que a DLL lê.
+/// Iniciar com o Windows: entrada em HKCU\...\Run (sem admin), abre minimizado na bandeja.
+/// O resto da configuração (perfis, bandeja, notificações) mora em G27Hub.Core.AppConfig.
 /// </summary>
-public sealed class Settings
+public static class AutoStart
 {
-    public int Range { get; set; } = 900;
-    public int Autocenter { get; set; } = 20;
-    public bool AutocenterOn { get; set; } = true;
-    public bool CloseToTray { get; set; } = true;
-
-    static readonly string FilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "G27Hub", "config.json");
-
-    public static Settings Load()
-    {
-        try
-        {
-            if (File.Exists(FilePath)) return JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new();
-        }
-        catch (Exception ex)
-        {
-            AppLog.Aviso("PERFIL", $"config.json inválido, usando o padrão ({ex.Message})");
-        }
-        return new();
-    }
-
-    public void Save()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
-    }
-
-    // Iniciar com o Windows: entrada em HKCU\...\Run (sem admin), abre minimizado na bandeja.
     const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
-    public static bool StartWithWindows
+    public static bool Enabled
     {
         get
         {

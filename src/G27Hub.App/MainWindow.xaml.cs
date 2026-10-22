@@ -24,7 +24,6 @@ namespace G27Hub.App;
 public partial class MainWindow : Window
 {
     readonly G27Device _dev = new();
-    readonly Settings _settings = Settings.Load();
     readonly DispatcherTimer _applyTimer = new() { Interval = TimeSpan.FromMilliseconds(200) };
     readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromSeconds(7) };
     bool _loading = true, _quitting, _testsRan;
@@ -65,7 +64,6 @@ public partial class MainWindow : Window
         BuildForceGraph();
         BuildButtonGrid();
         BuildAssignments();
-        BuildProfiles();
         BuildQuickTests([]);
 
         foreach (var l in AppLog.Memory.Snapshot()) _log.Add(l);
@@ -93,8 +91,10 @@ public partial class MainWindow : Window
         _loading = false;
 
         ShowScreen(HomeScreen);
-        _dev.SetRange(_settings.Range); // aplicada ao conectar
+        _dev.SetRange(W.Range); // aplicada ao conectar
+        UpdateProfileHeader();
         if (!connect) return;
+        StartProfileWatcher();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
         CompositionTarget.Rendering += OnFrame;
@@ -116,7 +116,7 @@ public partial class MainWindow : Window
                 ShowSection("forca");
                 Dispatcher.BeginInvoke(() => StartFfbTest_Click(this, new RoutedEventArgs()), DispatcherPriority.Background);
             }
-            ApplyAutocenter();
+            ApplyWheel(force: true);
             if (HomeScreen.Visibility == Visibility.Visible) ShowScreen(DevicesScreen);
             UpdateDeviceStatus();
             ShowToast("G27", "Ok", "G27 conectado", _dev.IsNative ? $"Modo nativo, {_dev.Range}°. Pode abrir o jogo." : "Conectado, mas fora do modo nativo. Use \"Reaplicar\" na aba Teste.");
@@ -171,8 +171,8 @@ public partial class MainWindow : Window
                 break;
             case "teste":
                 TestAngle.Text = $"{_shownAngle:+0.0;-0.0;0.0}°";
-                TestMin.Text = $"-{_settings.Range / 2}°";
-                TestMax.Text = $"+{_settings.Range / 2}°";
+                TestMin.Text = $"-{W.Range / 2}°";
+                TestMax.Text = $"+{W.Range / 2}°";
                 if (s.Axes.TryGetValue("X", out var x))
                 {
                     TestRaw.Text = $"bruto {x.Value} / {x.Max}";
@@ -217,7 +217,7 @@ public partial class MainWindow : Window
         if (!_dev.IsConnected) { ShowToast("FFB", "Warn", "G27 não conectado", "Ligue o volante para testar o force feedback."); return; }
         if (FfbShared.Read() is { AgeMs: < 1000 }) { ShowToast("FFB", "Warn", "Tem um jogo usando o force feedback", "Feche o jogo antes de rodar o teste."); return; }
         _dev.SetAutocenter(0); // a mola do volante brigaria com o teste
-        Road.WheelLock = _settings.Range / 2.0;
+        Road.WheelLock = W.Range / 2.0;
         Road.Reset(_dev.State?.Angle ?? 0, free);
         _roadLast = 0;
         _roadForce = _roadMaxForce = 0;
@@ -277,24 +277,30 @@ public partial class MainWindow : Window
 
     // ================= ajustes =================
 
+    /// <summary>Mostra nas abas os ajustes do perfil ativo (os próprios ou os do Desktop).</summary>
     void LoadSettingsIntoUi()
     {
-        RangeSlider.Value = _settings.Range;
-        AutocenterSlider.Value = _settings.Autocenter;
-        AutocenterCheck.IsChecked = _settings.AutocenterOn;
+        var wasLoading = _loading;
+        _loading = true;
+        var w = W;
+        RangeSlider.Value = w.Range;
+        AutocenterSlider.Value = w.Autocenter;
+        AutocenterCheck.IsChecked = w.AutocenterOn;
         FfbEnabled.IsChecked = FfbRegistration.IsRegistered();
-        GainSlider.Value = FfbRegistration.GetConfig("MasterGain", 100);
-        MinForceSlider.Value = FfbRegistration.GetConfig("MinForce", 0);
-        AllowGameCheck.IsChecked = FfbRegistration.GetConfig("AllowGame", 1) == 1;
-        SpringSlider.Value = FfbRegistration.GetConfig("SpringGain", 100);
-        DamperSlider.Value = FfbRegistration.GetConfig("DamperGain", 100);
-        var center = FfbRegistration.GetConfig("CenterSpring", 0);
-        CenterCheck.IsChecked = center > 0;
-        CenterSlider.Value = center > 0 ? center : 20;
-        InvertCheck.IsChecked = FfbRegistration.GetConfig("Invert", 0) == 1;
-        StartWithWindowsCheck.IsChecked = Settings.StartWithWindows;
-        CloseToTrayCheck.IsChecked = _settings.CloseToTray;
-        UpdateArc(_settings.Range, 0);
+        GainSlider.Value = w.MasterGain;
+        MinForceSlider.Value = w.MinForce;
+        AllowGameCheck.IsChecked = w.AllowGame;
+        SpringSlider.Value = w.SpringGain;
+        DamperSlider.Value = w.DamperGain;
+        CenterCheck.IsChecked = w.CenterSpring > 0;
+        CenterSlider.Value = w.CenterSpring > 0 ? w.CenterSpring : 20;
+        InvertCheck.IsChecked = w.Invert;
+        StartWithWindowsCheck.IsChecked = AutoStart.Enabled;
+        CloseToTrayCheck.IsChecked = _config.CloseToTray;
+        NotificationsCheck.IsChecked = _config.Notifications;
+        UpdateArc(w.Range, 0);
+        UpdateProfileHeader();
+        _loading = wasLoading;
     }
 
     void SettingChanged()
@@ -305,33 +311,49 @@ public partial class MainWindow : Window
         _applyTimer.Start(); // espera parar de arrastar o slider
     }
 
-    /// <summary>Manda para o volante / DLL só o que mudou e salva.</summary>
+    /// <summary>Guarda o que está nas abas no perfil em vigor e manda para o volante / DLL.</summary>
     void ApplySettings()
     {
-        var range = (int)Math.Round(RangeSlider.Value);
-        if (range != _settings.Range)
+        var w = W;
+        w.Range = (int)Math.Round(RangeSlider.Value);
+        w.Autocenter = (int)Math.Round(AutocenterSlider.Value);
+        w.AutocenterOn = AutocenterCheck.IsChecked == true;
+        w.MasterGain = (int)Math.Round(GainSlider.Value);
+        w.MinForce = (int)Math.Round(MinForceSlider.Value);
+        w.SpringGain = (int)Math.Round(SpringSlider.Value);
+        w.DamperGain = (int)Math.Round(DamperSlider.Value);
+        w.CenterSpring = CenterCheck.IsChecked == true ? Math.Max(1, (int)Math.Round(CenterSlider.Value)) : 0;
+        w.Invert = InvertCheck.IsChecked == true;
+        w.AllowGame = AllowGameCheck.IsChecked == true;
+        _config.Save();
+        ApplyWheel(force: false);
+    }
+
+    int _appliedRange = -1, _appliedAutocenter = -1;
+
+    /// <summary>Manda os ajustes em vigor para o volante (só o que mudou, ou tudo com force) e para a DLL.</summary>
+    void ApplyWheel(bool force)
+    {
+        var w = W;
+        if (force || w.Range != _appliedRange)
         {
-            _settings.Range = range;
-            _dev.SetRange(range); // sem volante, só guarda para a próxima conexão
+            _dev.SetRange(w.Range); // sem volante, só guarda para a próxima conexão
+            _appliedRange = w.Range;
             UpdateDeviceStatus();
         }
-        var ac = (int)Math.Round(AutocenterSlider.Value);
-        var acOn = AutocenterCheck.IsChecked == true;
-        if (ac != _settings.Autocenter || acOn != _settings.AutocenterOn)
+        var ac = w.AutocenterOn ? w.Autocenter : 0;
+        if (force || ac != _appliedAutocenter)
         {
-            _settings.Autocenter = ac;
-            _settings.AutocenterOn = acOn;
+            _appliedAutocenter = ac;
             ApplyAutocenter();
         }
-        _settings.Save();
-
-        SetFfb("MasterGain", (int)Math.Round(GainSlider.Value), 100);
-        SetFfb("SpringGain", (int)Math.Round(SpringSlider.Value), 100);
-        SetFfb("DamperGain", (int)Math.Round(DamperSlider.Value), 100);
-        SetFfb("CenterSpring", CenterCheck.IsChecked == true ? Math.Max(1, (int)Math.Round(CenterSlider.Value)) : 0, 0);
-        SetFfb("Invert", InvertCheck.IsChecked == true ? 1 : 0, 0);
-        SetFfb("MinForce", (int)Math.Round(MinForceSlider.Value), 0);
-        SetFfb("AllowGame", AllowGameCheck.IsChecked == true ? 1 : 0, 1);
+        SetFfb("MasterGain", w.MasterGain, 100);
+        SetFfb("SpringGain", w.SpringGain, 100);
+        SetFfb("DamperGain", w.DamperGain, 100);
+        SetFfb("CenterSpring", w.CenterSpring, 0);
+        SetFfb("Invert", w.Invert ? 1 : 0, 0);
+        SetFfb("MinForce", w.MinForce, 0);
+        SetFfb("AllowGame", w.AllowGame ? 1 : 0, 1);
     }
 
     static void SetFfb(string name, int value, int def)
@@ -341,8 +363,10 @@ public partial class MainWindow : Window
 
     void ApplyAutocenter()
     {
-        SetFfb("ExitAutocenter", _settings.AutocenterOn ? _settings.Autocenter : 0, 40); // a DLL devolve esta mola quando o jogo fecha
-        if (_dev.IsConnected) _dev.SetAutocenter(_settings.AutocenterOn ? _settings.Autocenter : 0);
+        var w = W;
+        SetFfb("ExitAutocenter", w.AutocenterOn ? w.Autocenter : 0, 40); // a DLL devolve esta mola quando o jogo fecha
+        if (FfbShared.Read() is { AgeMs: < 1000 }) return; // jogo com FFB aberto: a mola do volante brigaria com ele
+        if (_dev.IsConnected) _dev.SetAutocenter(w.AutocenterOn ? w.Autocenter : 0);
     }
 
     void ToggleFfb()
@@ -378,8 +402,7 @@ public partial class MainWindow : Window
     {
         if (!_dev.IsConnected) { ShowToast("G27", "Warn", "G27 não conectado", "Ligue o volante na tomada e no USB."); return; }
         if (!_dev.IsNative) { AppLog.Info("MODO", "Reconectando para reenviar o modo nativo"); _dev.Reset(); return; }
-        _dev.SetRange(_settings.Range);
-        ApplyAutocenter();
+        ApplyWheel(force: true);
     }
 
     void Reapply_Click(object sender, RoutedEventArgs e) => Reapply();
@@ -452,10 +475,10 @@ public partial class MainWindow : Window
     void DeviceCard_Click(object sender, MouseButtonEventArgs e) => ShowScreen(WheelScreen);
     void Back_Click(object sender, RoutedEventArgs e) => ShowScreen(_dev.IsConnected ? DevicesScreen : HomeScreen);
     void Nav_Checked(object sender, RoutedEventArgs e) => ShowSection((string)((FrameworkElement)sender).Tag);
-    void Profile_Click(object sender, RoutedEventArgs e) => ProfilePopup.IsOpen = true;
     void AppSettings_Click(object sender, RoutedEventArgs e) => AppSettingsPopup.IsOpen = true;
-    void StartWithWindows_Click(object sender, RoutedEventArgs e) => Settings.StartWithWindows = StartWithWindowsCheck.IsChecked == true;
-    void CloseToTray_Click(object sender, RoutedEventArgs e) { _settings.CloseToTray = CloseToTrayCheck.IsChecked == true; _settings.Save(); }
+    void StartWithWindows_Click(object sender, RoutedEventArgs e) => AutoStart.Enabled = StartWithWindowsCheck.IsChecked == true;
+    void CloseToTray_Click(object sender, RoutedEventArgs e) { _config.CloseToTray = CloseToTrayCheck.IsChecked == true; _config.Save(); }
+    void Notifications_Click(object sender, RoutedEventArgs e) { _config.Notifications = NotificationsCheck.IsChecked == true; _config.Save(); }
     void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     void Maximize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     void Close_Click(object sender, RoutedEventArgs e) => Close();
@@ -477,7 +500,7 @@ public partial class MainWindow : Window
     protected override void OnClosing(CancelEventArgs e)
     {
         StopFfbTest();
-        if (!_quitting && _settings.CloseToTray)
+        if (!_quitting && _config.CloseToTray)
         {
             e.Cancel = true; // continua na bandeja mantendo o volante configurado
             Hide();
@@ -658,14 +681,6 @@ public partial class MainWindow : Window
         AssignTitle.Text = "ESCOLHA UM BOTÃO NA IMAGEM";
     }
 
-    void BuildProfiles()
-    {
-        var item = new Border { Padding = new Thickness(8), CornerRadius = new CornerRadius(3), Background = Draw.Hex("#2A2A2A") };
-        item.Child = new TextBlock { Text = "Desktop: Padrão", FontSize = 12.5, Foreground = (Brush)FindResource("Accent") };
-        ProfileList.Children.Add(item);
-        ProfileList.Children.Add(new TextBlock { Text = "Perfis por jogo chegam na Fase 5.", Style = (Style)FindResource("Hint"), Margin = new Thickness(8, 8, 8, 4) });
-    }
-
     // ================= console (seção 6) =================
 
     void OnLog(LogLine l)
@@ -824,6 +839,7 @@ public partial class MainWindow : Window
 
     void ShowToast(string icon, string kind, string title, string body, params string[] actions)
     {
+        if (!_config.Notifications && kind != "Error") return;
         ToastIcon.Text = icon;
         ToastMark.Text = kind switch { "Ok" => "", "Warn" => "", "Error" => "", _ => "" };
         ToastMark.Foreground = (Brush)FindResource(kind);
