@@ -4,6 +4,16 @@ App para Windows 10/11 que faz pelo **Logitech G27** o que o Logitech Gaming Sof
 **Idealizado e desenvolvido por John Salim / Samosbourne, junto com IA** (Claude, da Anthropic): o código deste projeto
 foi escrito com inteligência artificial, a partir das ideias, decisões e testes no volante do John.
 
+> **English:** G27 Hub brings back what Logitech Gaming Software 5.10 did for the Logitech G27 on Windows 10/11
+> (native mode, 900°, force feedback without a kernel driver, per-game profiles, button assignments, RPM LEDs),
+> with a G HUB-like look. The app is available in Portuguese and English (globe button at the top).
+
+## Baixar / Download
+Baixe o `G27Hub-Setup-<versão>.exe` em **[Releases](https://github.com/Samosbourne/G27Hub/releases/latest)** e instale
+(por usuário, sem administrador). Como o instalador não é assinado, o Windows pode mostrar "O Windows protegeu o computador":
+clique em **Mais informações → Executar assim mesmo**.
+Download `G27Hub-Setup-<version>.exe` from **Releases** and run it (per-user, no admin needed).
+
 Projeto pessoal, sem relação com a Logitech. "G27" e "Logitech" são marcas da Logitech; nenhum código, ícone ou imagem do LGS/G HUB foi usado.
 
 ## O que faz
@@ -48,3 +58,6 @@ Documentação: `PLANO_G27HUB.md` (plano), `docs/protocolo-g27.md` (protocolo HI
 - **Serilog** (Apache 2.0): log em arquivo.
 - **Linux hid-lg4ff**: usado só como referência dos fatos do protocolo do G27 (nenhum código GPL copiado).
 - Ideias de funcionalidades: **Jabelius/OpenG27** (MIT).
+
+## Licença
+MIT (ver `LICENSE`). © 2026 John Salim (Samosbourne).
