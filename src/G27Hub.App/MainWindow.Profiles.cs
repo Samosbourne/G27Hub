@@ -41,6 +41,24 @@ public partial class MainWindow
     {
         SwitchProfileFor(names);
         DetectGames(names);
+        UpdateGameBadge(names);
+    }
+
+    /// <summary>Indicador discreto do jogo reconhecido: tela inicial (canto) e topo da página do volante.</summary>
+    void UpdateGameBadge(string[] names)
+    {
+        var game = names.Select(_db.Find).FirstOrDefault(g => g != null)?.Name ?? _config.MatchRunning(names)?.Name;
+        if (game == null)
+        {
+            GameBadge.Visibility = HeaderGame.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var text = $"{game} aberto · perfil {(_config.Active.IsDesktop ? "Desktop" : _config.Active.Name)}";
+        GameBadgeText.Text = text;
+        HeaderGameText.Text = text;
+        GameBadge.Visibility = Visibility.Visible;
+        HeaderGame.Visibility = HeaderTitle.Visibility; // só junto do título "G27" (página do volante)
+        GameBadge.ToolTip = HeaderGame.ToolTip = "Jogo reconhecido pelo G27 Hub" + (_config.DetectorOn ? "" : " (avisos do detector desligados)");
     }
 
     void SwitchProfileFor(string[] names)

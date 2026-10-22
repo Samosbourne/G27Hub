@@ -462,6 +462,7 @@ public partial class MainWindow : Window
             s.Visibility = s == screen ? Visibility.Visible : Visibility.Collapsed;
         var wheel = screen == WheelScreen;
         BackButton.Visibility = HeaderTitle.Visibility = wheel ? Visibility.Visible : Visibility.Collapsed;
+        HeaderGame.Visibility = wheel && GameBadge.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
         MenuButton.Visibility = wheel ? Visibility.Collapsed : Visibility.Visible;
         if (wheel && NavVolante.IsChecked != true) NavVolante.IsChecked = true;
     }
@@ -899,6 +900,7 @@ public partial class MainWindow : Window
         }
 
         ShowScreen(HomeScreen); Shot("01-inicio");
+        UpdateGameBadge(["BeamNG.drive.x64"]); // simula um jogo aberto para mostrar o indicador
         ShowScreen(DevicesScreen); Shot("02-dispositivos");
         ShowScreen(WheelScreen);
         string[] sections = ["volante", "pedais", "forca", "cambio", "leds", "atribuicoes", "teste"];

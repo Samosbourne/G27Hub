@@ -78,6 +78,10 @@
                     <TextBlock Text="&#xE72B;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
                 <TextBlock x:Name="HeaderTitle" Text="G27" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0" Visibility="Collapsed"/>
+                <StackPanel x:Name="HeaderGame" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,2,0,0" Visibility="Collapsed">
+                    <Ellipse Width="6" Height="6" Fill="{StaticResource Ok}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderGameText" FontSize="11.5" Foreground="{StaticResource TextDim}" VerticalAlignment="Center"/>
+                </StackPanel>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -182,6 +186,14 @@
 
             <!-- 5.3 lista de dispositivos -->
             <Grid x:Name="DevicesScreen" Visibility="Collapsed">
+                <!-- jogo reconhecido agora (discreto, canto inferior esquerdo) -->
+                <Border x:Name="GameBadge" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24" Padding="12,7"
+                        CornerRadius="14" Background="#141414" BorderBrush="#2A2A2A" BorderThickness="1" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="7" Height="7" Fill="{StaticResource Ok}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="GameBadgeText" FontSize="12" Foreground="#CFCFCF" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,24,0">
                     <Button Style="{StaticResource IconButton}" ToolTip="Grade">
                         <TextBlock Text="&#xE80A;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
