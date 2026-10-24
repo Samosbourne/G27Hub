@@ -1,19 +1,20 @@
 namespace G27Hub.Core;
 
 /// <summary>
-/// Números dos botões do G27 nativo (1-based, como no joy.cpl). Vermelhos do câmbio e marchas 1–3 confirmados
-/// pelo John em 21/10/2026; o resto segue a sequência do relatório (22 botões + o 23º separado = ré).
+/// Números dos botões do G27 (1-based, como no joy.cpl), vindos do mapa em vigor (<see cref="Map"/>, AppConfig.Map).
+/// O padrão é o do G27 do John; o assistente "Configurar volante" grava o de outros volantes.
 /// </summary>
 public static class G27Buttons
 {
-    public static readonly int[] ShifterBlack = [1, 2, 3, 4]; // losango: baixo, esquerda, direita, cima
-    public const int PaddleRight = 5, PaddleLeft = 6;
-    public static readonly int[] ShifterRed = [12, 9, 10, 11]; // da esquerda para a direita
-    public static readonly int[] Gears = [13, 14, 15, 16, 17, 18];
-    // Vermelhos do volante confirmados pelo John em 21/10/2026; borboletas 5/6 ainda pela sequência
-    public static readonly int[] WheelLeft = [8, 21, 22];  // lateral esquerda, de cima para baixo
-    public static readonly int[] WheelRight = [7, 19, 20]; // lateral direita, de cima para baixo
-    public const int Reverse = 23;
+    public static InputMap Map { get; set; } = new();
+    public static int[] ShifterBlack => Map.ShifterBlack; // losango: baixo, esquerda, direita, cima
+    public static int PaddleRight => Map.PaddleRight;
+    public static int PaddleLeft => Map.PaddleLeft;
+    public static int[] ShifterRed => Map.ShifterRed;   // da esquerda para a direita
+    public static int[] Gears => Map.Gears;
+    public static int[] WheelLeft => Map.WheelLeft;    // lateral esquerda, de cima para baixo
+    public static int[] WheelRight => Map.WheelRight;  // lateral direita, de cima para baixo
+    public static int Reverse => Map.Reverse;
 }
 
 public sealed record AxisValue(int Value, int Min, int Max)
@@ -26,13 +27,11 @@ public sealed record AxisValue(int Value, int Min, int Max)
 /// </summary>
 public sealed record G27State(IReadOnlyDictionary<string, AxisValue> Axes, IReadOnlyList<int> Buttons, int Hat, int Range)
 {
-    public double? Angle => Axes.TryGetValue("X", out var x) ? AngleFrom(x.Normalized, Range) : null;
+    public double? Angle => Axes.TryGetValue(G27Buttons.Map.Steer, out var x) ? AngleFrom(x.Normalized, Range) : null;
 
-    // ponytail: mapeamento do G27 nativo conhecido de outros drivers, ainda não confirmado no volante do John
-    // (docs/testes/fase4.md). Se estiver trocado, é só mudar aqui.
-    public double Throttle => Pedal("Z");
-    public double Brake => Pedal("Rz");
-    public double Clutch => Pedal("Y");
+    public double Throttle => Pedal(G27Buttons.Map.Throttle);
+    public double Brake => Pedal(G27Buttons.Map.Brake);
+    public double Clutch => Pedal(G27Buttons.Map.Clutch);
 
     /// <summary>"1".."6", "R" ou "N".</summary>
     public string Gear

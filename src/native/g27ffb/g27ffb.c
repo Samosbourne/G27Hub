@@ -482,6 +482,31 @@ static void hub_autocenter(HANDLE h, DWORD pct) {
     g27_autocenter_apply_raw(h, (BYTE)(a / knee), (BYTE)(b / knee));
 }
 
+/* "ForceLut" (REG_SZ): 11 inteiros 0..10000 separados por virgula. Ausente ou invalido = linear (FALSE). */
+static BOOL read_lut(LONG lut[11]) {
+    WCHAR buf[128];
+    if (!g27_cfg_get_str(L"ForceLut", buf, 128)) return FALSE;
+    int n = 0;
+    LONG v = 0;
+    BOOL digits = FALSE;
+    for (const WCHAR *c = buf;; ++c) {
+        if (*c >= L'0' && *c <= L'9') {
+            v = v * 10 + (*c - L'0');
+            digits = TRUE;
+            if (v > 10000) return FALSE;
+        } else if (*c == L',' || *c == 0) {
+            if (!digits || n == 11) return FALSE;
+            lut[n++] = v;
+            v = 0;
+            digits = FALSE;
+            if (*c == 0) break;
+        } else if (*c != L' ') {
+            return FALSE;
+        }
+    }
+    return n == 11;
+}
+
 static DWORD WINAPI MixerThreadProc(LPVOID param) {
     Driver *drv = (Driver *)param;
 
@@ -505,6 +530,8 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
     LONG condGain[4] = {100, 100, 100, 100}; /* % por tipo: mola, amortecedor, inercia, atrito */
     LONG centerSpring = 0;
     LONG minForce = 0;     /* % */
+    LONG lut[11];          /* "ForceLut": saida para 0%, 10% .. 100% de entrada (0..10000); lutOn = 0 se linear */
+    BOOL lutOn = FALSE;
     BOOL allowGame = TRUE; /* o jogo pode mudar o ganho geral (SetGain) */
 
     HANDLE waitHandles[2];
@@ -572,6 +599,7 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
             condGain[1] = (LONG)g27_cfg_get(L"DamperGain", 100);
             centerSpring = (LONG)g27_cfg_get(L"CenterSpring", 0);
             minForce = (LONG)g27_cfg_get(L"MinForce", 0);
+            lutOn = read_lut(lut);
             allowGame = g27_cfg_get(L"AllowGame", 1) != 0;
         }
 
@@ -590,9 +618,21 @@ static DWORD WINAPI MixerThreadProc(LPVOID param) {
         LONGLONG F = (LONGLONG)fDi * (drv->invert ? 1 : -1) + fCond;
         F = F * (LONGLONG)(allowGame ? drv->deviceGain : 10000) / 10000;
         F = F * (LONGLONG)drv->masterGain / 100;
+        /* G27 Hub - vibracao extra pela telemetria (Fase 10): segue so a intensidade global, nao o ganho do jogo */
+        F += (LONGLONG)hub_vibration(dt) * drv->masterGain / 100;
 
         if (drv->paused || !drv->actuatorsOn) {
             F = 0;
+        }
+        /* G27 Hub - "Reforco das forcas fracas" (Fase 10): tabela de 11 pontos calculada pelo app (ForceLut),
+           interpolada em linha reta. As engrenagens do G27 engolem forca pequena; a tabela sobe o comeco. */
+        if (lutOn && F != 0) {
+            LONGLONG mag = F > 0 ? F : -F;
+            if (mag < 10000) {
+                int i = (int)(mag / 1000);
+                mag = lut[i] + (lut[i + 1] - lut[i]) * (mag - i * 1000) / 1000;
+            }
+            F = F > 0 ? mag : -mag;
         }
         /* G27 Hub - "Forca minima": pula a zona morta do centro do G27, onde forca pequena nao mexe o volante */
         if (minForce > 0 && (F > 50 || F < -50)) {

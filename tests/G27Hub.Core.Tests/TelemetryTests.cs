@@ -79,6 +79,22 @@ public class TelemetryTests
     }
 
     [Fact]
+    public void Pacote_novo_traz_velocidade_abs_e_aceleracao()
+    {
+        var b = new byte[48];
+        "G27T"u8.CopyTo(b);
+        WriteSingleLittleEndian(b.AsSpan(4), 1200);
+        WriteSingleLittleEndian(b.AsSpan(28), 25);    // m/s
+        WriteSingleLittleEndian(b.AsSpan(32), 1);     // ABS
+        WriteSingleLittleEndian(b.AsSpan(40), 9.81f); // vertical
+        var f = TelemetryHub.HubPacket(b)!;
+        Assert.Equal(90, f.Speed!.Value, 3);
+        Assert.Equal(1, f.Abs);
+        Assert.Equal(9.81f, f.Accel!.Value.Y);
+        Assert.Null(TelemetryHub.HubPacket(b[..28])!.Accel); // mod/plugin antigo
+    }
+
+    [Fact]
     public void OutGauge_aprende_a_rpm_maxima_por_carro()
     {
         var b = new byte[96];

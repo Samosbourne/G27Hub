@@ -89,6 +89,7 @@ public sealed class G27Device : IDisposable
                 : $"G27 conectado em 046D:{dev.ProductID:X4} (NÃO nativo), rotação {Range}°");
 
             ReadInitialState(dev);
+            LogLayout(dev);
             new Thread(() => ReadLoop(stream)) { IsBackground = true, Name = "G27 read" }.Start();
             ConnectionChanged?.Invoke(true);
             return true;
@@ -184,6 +185,20 @@ public sealed class G27Device : IDisposable
             ConnectionChanged?.Invoke(false);
             _changed.Set();
         }
+    }
+
+    /// <summary>
+    /// Para diagnóstico de volantes diferentes (o de um colega do John veio com a embreagem e as marchas em outros lugares):
+    /// firmware, cada eixo com o valor em repouso, quantos botões o relatório tem e o mapa em uso.
+    /// </summary>
+    void LogLayout(HidDevice dev)
+    {
+        int buttons = 0;
+        for (int i = 0; i < _parser!.ValueCount; i++) if ((uint)_parser.GetValue(i).Usages.FirstOrDefault() >> 16 == 0x09) buttons++;
+        var axes = State is { } s ? string.Join(", ", s.Axes.Select(a => $"{a.Key} {a.Value.Value} ({a.Value.Min}–{a.Value.Max})")) : "sem leitura";
+        AppLog.Info("HID", $"Firmware {dev.ReleaseNumberBcd >> 8:X}.{dev.ReleaseNumberBcd & 0xFF:X2} · eixos em repouso: {axes} · {buttons} botões" +
+            (State is { Buttons.Count: > 0 } st ? $" (apertados agora: {string.Join(",", st.Buttons)})" : ""));
+        AppLog.Info("HID", $"Mapa em uso{(G27Buttons.Map.IsDefault ? " (padrão)" : " (Configurar volante)")}: {G27Buttons.Map.Describe()}");
     }
 
     /// <summary>O G27 só manda relatório quando algo muda; pede o estado atual direto ao driver HID.</summary>

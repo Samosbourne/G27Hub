@@ -77,3 +77,8 @@ Pedais: Z = acelerador, Rz = freio, Y = embreagem (a confirmar).
 - Desligar/desconectar volta para ~200°: o app reaplica modo nativo + rotação sozinho.
 - O jogo deve abrir **depois** do modo nativo.
 - Steam Input pode "roubar" o volante.
+
+## Volantes com outro mapa (23/10/2026)
+O G27 de um colega do John, em modo nativo (C29B), mostrou o eixo Y parado no meio (127) com a embreagem solta e
+as marchas em outros botões. Firmware e descritor ainda não conhecidos (o app agora loga ao conectar). O app não supõe
+mais o mapa: "Configurar volante" aprende eixos e botões (InputMap). O mapa padrão continua sendo o desta página.

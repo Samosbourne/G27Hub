@@ -39,7 +39,8 @@ A first-run wizard checks old Logitech drivers, switches the wheel to native mod
 - **Diagnostic console** (Ctrl+Shift+L) logging everything, with quick tests.
 
 **Coming in 1.1 (in testing):** extra vibration from telemetry (engine, curbs, ABS, gear shifts, crashes), boost for weak forces,
-a phone dashboard over Wi-Fi (RPM, gear, LEDs, switch profile/rotation/strength) and an optional new-version notice.
+a phone dashboard over Wi-Fi (RPM, gear, LEDs, switch profile/rotation/strength), an optional new-version notice and
+**Set up wheel**, an animated step-by-step that teaches the app where each pedal, gear and button is (some G27s come with a different layout).
 
 ### Screenshots
 | | |
@@ -90,7 +91,8 @@ Na primeira abertura, um assistente confere drivers antigos da Logitech, coloca 
 - **Console de diagnóstico** (Ctrl+Shift+L) com log de tudo e testes rápidos.
 
 **Na versão 1.1 (em teste):** vibração extra pela telemetria (motor, zebras, ABS, trocas de marcha, batidas), reforço das
-forças fracas, painel no celular pelo Wi-Fi (RPM, marcha, LEDs, trocar perfil/rotação/força) e aviso opcional de versão nova.
+forças fracas, painel no celular pelo Wi-Fi (RPM, marcha, LEDs, trocar perfil/rotação/força), aviso opcional de versão nova e
+**Configurar volante**, um passo a passo animado que ensina ao app onde fica cada pedal, marcha e botão (alguns G27 vêm com outro mapa).
 
 ### Telas
 | | |

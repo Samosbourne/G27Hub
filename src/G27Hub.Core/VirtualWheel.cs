@@ -124,7 +124,7 @@ public sealed class VirtualWheel : IDisposable
     public void Feed(G27State s, WheelSettings w)
     {
         if (!_owned) return;
-        double steer = s.Axes.TryGetValue("X", out var x) ? x.Normalized * 2 - 1 : 0;
+        double steer = s.Axes.TryGetValue(G27Buttons.Map.Steer, out var x) ? x.Normalized * 2 - 1 : 0;
         double throttle = Curve(s.Throttle, w.ThrottleSensitivity), brake = Curve(s.Brake, w.BrakeSensitivity), clutch = Curve(s.Clutch, w.ClutchSensitivity);
         Axis(X, (Curve(steer, w.SteerSensitivity) + 1) / 2);
         Axis(Y, throttle);

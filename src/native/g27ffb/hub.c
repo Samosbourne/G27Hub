@@ -163,28 +163,63 @@ void hub_log(const char *nivel, const char *fmt, ...) {
 
 typedef struct {
     DWORD magic;   /* 'G27H' */
-    DWORD version; /* 1 */
+    DWORD version; /* 2 */
     DWORD pid;     /* processo do jogo que esta mandando forca */
     LONG force;    /* -10000..10000, antes do corte */
     DWORD clips;   /* ticks com a forca saturada, acumulado */
     DWORD tick;    /* GetTickCount da ultima atualizacao */
+    /* Fase 10: vibracao extra escrita pelo app a partir da telemetria do jogo (VibrationMixer.cs) */
+    DWORD vibTick;            /* GetTickCount da ultima escrita do app; parado > 250 ms = sem vibracao */
+    LONG engAmp, engHz100;    /* motor: amplitude 0..10000 e frequencia em centesimos de Hz */
+    LONG roadAmp, roadHz100;  /* pista/zebra/ABS */
+    LONG kickAmp;             /* tranco (troca de marcha, batida), com sinal */
+    DWORD kickUntil;          /* GetTickCount ate quando o tranco vale */
 } G27HubShared;
 
-void hub_publish(LONG force, BOOL clipped) {
+static G27HubShared *hub_map(void) {
     static G27HubShared *shared = NULL;
     static BOOL tried = FALSE;
-    if (!shared) {
-        if (tried) return;
+    if (!shared && !tried) {
         tried = TRUE;
+        /* o app pode ter criado antes (vibracao); CreateFileMapping abre o que ja existe */
         HANDLE map = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 64, L"Local\\G27Hub_Shared");
-        if (!map) return;
+        if (!map) return NULL;
         shared = (G27HubShared *)MapViewOfFile(map, FILE_MAP_ALL_ACCESS, 0, 0, 64);
-        if (!shared) return;
+        if (!shared) return NULL;
         shared->magic = 0x48373247; /* "G27H" */
-        shared->version = 1;
+        shared->version = 2;
     }
+    return shared;
+}
+
+void hub_publish(LONG force, BOOL clipped) {
+    G27HubShared *shared = hub_map();
+    if (!shared) return;
     shared->pid = GetCurrentProcessId();
     shared->force = force;
     if (clipped) shared->clips++;
     shared->tick = GetTickCount();
+}
+
+/* seno aproximado (parabola corrigida, erro < 0,1%) de uma fase em voltas 0..1; sem a biblioteca de matematica */
+static double wave(double turns) {
+    double x = turns < 0.5 ? 4.0 * turns - 1.0 : 3.0 - 4.0 * turns; /* triangulo -1..1 */
+    x = x * 0.5 + 0.5;                                               /* 0..1 -> meia onda */
+    double y = 4.0 * x * (1.0 - x);                                  /* parabola 0..1..0 */
+    y = 0.225 * (y * y - y) + y;
+    return turns < 0.5 ? y : -y;
+}
+
+LONG hub_vibration(double dt) {
+    static double phEng, phRoad; /* em voltas, 0..1 */
+    G27HubShared *s = hub_map();
+    DWORD now = GetTickCount();
+    if (!s || now - s->vibTick > 250) return 0;
+    phEng += s->engHz100 / 100.0 * dt;
+    phRoad += s->roadHz100 / 100.0 * dt;
+    if (phEng >= 1.0) phEng -= 1.0;
+    if (phRoad >= 1.0) phRoad -= 1.0;
+    double f = s->engAmp * wave(phEng) + s->roadAmp * wave(phRoad);
+    if ((LONG)(s->kickUntil - now) > 0) f += s->kickAmp;
+    return (LONG)f;
 }

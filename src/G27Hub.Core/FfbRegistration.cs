@@ -161,6 +161,27 @@ public static class FfbRegistration
         return cfg?.GetValue(name) is int v ? v : def;
     }
 
+    /// <summary>
+    /// "Reforço das forças fracas" (Fase 10): tabela de 11 pontos (0%, 10% … 100% de entrada → saída 0–10000) que a DLL
+    /// interpola. Curva |x|^g com g de 1 (0% = linear, sem tabela) a 0,4 (100%). Só grava se mudou.
+    /// </summary>
+    public static void SetForceCurve(int percent)
+    {
+        using var cfg = Hkcu().CreateSubKey(ConfigKey);
+        var lut = ForceLut(percent);
+        if (cfg.GetValue("ForceLut") as string == lut) return;
+        if (lut == null) cfg.DeleteValue("ForceLut", throwOnMissingValue: false);
+        else cfg.SetValue("ForceLut", lut, RegistryValueKind.String);
+        AppLog.Ok("FFB", $"Reforço das forças fracas = {percent}% ({lut ?? "linear"})");
+    }
+
+    public static string? ForceLut(int percent)
+    {
+        if (percent <= 0) return null;
+        var g = 1 - Math.Min(percent, 100) * 0.006;
+        return string.Join(",", Enumerable.Range(0, 11).Select(i => (int)Math.Round(Math.Pow(i / 10.0, g) * 10000)));
+    }
+
     /// <summary>As duas DLLs registradas, existindo, e a chave OEM apontando para nós.</summary>
     public static bool IsRegistered()
     {

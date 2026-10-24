@@ -97,6 +97,7 @@ public partial class MainWindow
 
     void UpdateProfileHeader()
     {
+        RefreshPhoneProfiles();
         var p = _config.Active;
         ProfileName.Text = p.IsDesktop ? T("DESKTOP: Padrão") : p.Name;
         ProfileCaption.Text = _config.Locked ? T("PERFIL TRAVADO") : T("PERFIL ATIVO");

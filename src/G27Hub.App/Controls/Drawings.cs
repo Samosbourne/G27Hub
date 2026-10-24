@@ -51,6 +51,8 @@ public sealed class G27Pedals : UserControl
     {
         c.At(Draw.Box(14, 220 - (y + h - 12), 3, Draw.Hex("#262626")), x + w / 2 - 7, y + h - 12); // haste
         _faces[i] = c.At(Draw.Box(w, h, 12, Draw.Metal, Draw.Dim, 1), x, y);
+        _faces[i].RenderTransformOrigin = new Point(0.5, 1);
+        _faces[i].RenderTransform = new ScaleTransform(1, 1);
         double gx = (w - 28) / Math.Max(cols - 1, 1), gy = (h - 30) / Math.Max(rows - 1, 1);
         for (int r = 0; r < rows; r++)
             for (int col = 0; col < cols; col++)
@@ -63,6 +65,13 @@ public sealed class G27Pedals : UserControl
         _faces[pedal].Stroke = pressed ? (Brush)FindResource("Accent") : Draw.Dim;
         _faces[pedal].StrokeThickness = pressed ? 3 : 1;
     }
+
+    /// <summary>Animação do "Configurar volante": o pedal afunda (0 = solto, 1 = no fundo).</summary>
+    public void SetDepth(int pedal, double depth)
+    {
+        ((ScaleTransform)_faces[pedal].RenderTransform).ScaleY = 1 - 0.3 * depth;
+        SetPressed(pedal, depth > 0.05);
+    }
 }
 
 /// <summary>Câmbio H do G27 com marcha atual e os botões da base.</summary>
@@ -74,6 +83,7 @@ public sealed class G27Shifter : UserControl
     readonly Dictionary<string, (Ellipse Dot, TextBlock Text)> _gears = [];
     readonly List<Shape> _buttons = [];
     readonly TextBlock _neutral;
+    readonly Ellipse _knob = Draw.Circle(30, Draw.Hex("#E2E8F0"), Draw.Hex("#00D2FF"), 3);
 
     public G27Shifter()
     {
@@ -94,6 +104,7 @@ public sealed class G27Shifter : UserControl
             _gears[gear] = (dot, text);
         }
         _neutral = c.At(Draw.Label("N", 15, Draw.Hex("#8A8A8A"), 30), 160, 128);
+        c.At(_knob, 0, 0).Visibility = Visibility.Collapsed;
 
         // base de botões como no G27 (foto do John): placa prateada de topo arredondado,
         // 4 pretos em losango em cima, direcional redondo no meio (LED verde ao lado), 4 vermelhos embaixo
@@ -114,6 +125,23 @@ public sealed class G27Shifter : UserControl
         _buttons.AddRange(black);
 
         Content = new Viewbox { Child = c };
+    }
+
+    /// <summary>
+    /// Animação do "Configurar volante": a manopla sai do neutro e entra na marcha ("1".."6", "R"); progress 0..1
+    /// (metade do caminho pelo corredor do meio, metade para cima/baixo). Null esconde.
+    /// </summary>
+    public void ShowKnob(string? gear, double progress)
+    {
+        _knob.Visibility = gear == null ? Visibility.Collapsed : Visibility.Visible;
+        if (gear == null) return;
+        var (_, gx, gy) = Gears.First(g => g.Gear == gear);
+        double x = 175, y = 150;
+        if (progress < 0.5) x += (gx - 175) * progress * 2;
+        else (x, y) = (gx, 150 + (gy - 150) * (progress - 0.5) * 2);
+        Canvas.SetLeft(_knob, x - 15);
+        Canvas.SetTop(_knob, y - 15);
+        SetGear(progress >= 0.98 ? gear : "N");
     }
 
     /// <summary>"1".."6", "R" ou "N".</summary>

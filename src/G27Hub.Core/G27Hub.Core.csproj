@@ -20,6 +20,8 @@
     <EmbeddedResource Include="..\..\data\compat-db.json" LogicalName="compat-db.json" />
     <!-- textos da interface em inglês (chave = português), ver Lang.cs -->
     <EmbeddedResource Include="..\..\data\lang-en.json" LogicalName="lang-en.json" />
+    <!-- página do painel no celular (PhonePanel.cs) -->
+    <EmbeddedResource Include="..\..\data\phone.html" LogicalName="phone.html" />
   </ItemGroup>
 
 </Project>

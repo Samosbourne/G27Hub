@@ -43,7 +43,7 @@ public partial class MainWindow
 
     async void WizardNext_Click(object sender, RoutedEventArgs e)
     {
-        if (_wizardDone) { CloseWizard(T("concluído")); return; }
+        if (_wizardDone) { CloseWizard("concluído"); return; } // o log fica em português
         if (_wizardRunning) return;
         _wizardRunning = true;
         WizardNext.IsEnabled = WizardSkip.IsEnabled = false;
@@ -113,6 +113,15 @@ public partial class MainWindow
         WizardRow(_dev.IsNative, T("Modo nativo"), _dev.IsNative
             ? T($"{_dev.Range}° de rotação, pedais separados e embreagem. O app reaplica sozinho a cada vez que o volante é ligado.")
             : T("O volante não entrou em modo nativo. Desligue e ligue o G27 e rode o assistente de novo."));
+
+        // 3b. pedais no lugar esperado (G27 de colega do John veio com outro mapa, 23/10/2026)
+        if (_dev.IsNative && _dev.State is { } st)
+        {
+            var why = MapSuspicion(st);
+            WizardRow(why == null, T("Pedais e marchas"), why == null
+                ? T("Pedais no lugar esperado. Se algo aparecer trocado no app, use CONFIGURAR VOLANTE na tela inicial.")
+                : why + T(" Depois do assistente, clique CONFIGURAR VOLANTE na tela inicial."));
+        }
 
         // 4. force feedback para os jogos (HKCU, sem admin, reversível na aba Força)
         bool ffb = FfbRegistration.IsRegistered() || FfbRegistration.Register();

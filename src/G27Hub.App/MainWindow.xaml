@@ -173,7 +173,8 @@
                                      ToolTip="Para jogos sem suporte ao G27. Esconde o G27 dos jogos e cria o &quot;vJoy Device&quot; com sensibilidade e pedais combinados."/>
                         <Button Style="{StaticResource FlatButton}" Content="Testar LEDs" Margin="0,0,0,8" Click="TestLeds_Click"/>
                         <Button Style="{StaticResource FlatButton}" Content="Reaplicar modo nativo e rotação" Margin="0,0,0,8" Click="Reapply_Click"/>
-                        <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Click="Calibrate_Click"/>
+                        <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Margin="0,0,0,8" Click="Calibrate_Click"/>
+                        <Button Style="{StaticResource FlatButton}" Content="Configurar volante (pedais, marchas e botões)" Click="MapWheel_Click"/>
                     </StackPanel>
                 </Border>
             </Popup>
@@ -186,7 +187,22 @@
                         <CheckBox x:Name="NotificationsCheck" Content="Notificações (erros sempre aparecem)" Margin="0,0,0,10" Click="Notifications_Click"/>
                         <CheckBox x:Name="DetectorCheck" Content="Detector inteligente de jogos (avisos de compatibilidade ao abrir um jogo)" Margin="0,0,0,10" Click="DetectorCheck_Click"
                                   ToolTip="Ao abrir um jogo conhecido: compatibilidade, modo recomendado, controle de Xbox, Steam Input, rotação sugerida; ao fechar, pergunta se funcionou. Desligado de fábrica."/>
+                        <CheckBox x:Name="UpdateCheck" Content="Avisar quando houver versão nova" Margin="0,0,0,10" Click="UpdateCheck_Click"
+                                  ToolTip="Olha a página do G27 Hub no GitHub no máximo 1x por dia e avisa. Nunca baixa nem instala sozinho. Desligado de fábrica."/>
                         <CheckBox x:Name="LockCheckSettings" Content="Perfil persistente: travar o perfil atual" Click="LockToggle_Click"/>
+                        <TextBlock Text="PAINEL NO CELULAR (OPCIONAL)" Style="{StaticResource SettingLabel}" Margin="0,20,0,8"/>
+                        <CheckBox x:Name="PhoneCheck" Content="Ligar o painel no celular (mesma rede Wi-Fi)" Click="PhoneCheck_Click"
+                                  ToolTip="RPM, marcha, velocidade e LEDs no celular, e trocar perfil, rotação e força. O Windows pode perguntar uma vez se libera o G27 Hub no firewall: permita em redes privadas."/>
+                        <StackPanel x:Name="PhoneBox" Visibility="Collapsed" Margin="0,10,0,0">
+                            <TextBlock Style="{StaticResource Hint}" Text="Aponte a câmera do celular para o código:" Margin="0,0,0,8"/>
+                            <Border Background="White" CornerRadius="6" Padding="6" HorizontalAlignment="Center">
+                                <Image x:Name="PhoneQr" Width="150" Height="150" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            </Border>
+                            <TextBox x:Name="PhoneUrl" IsReadOnly="True" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextDim}"
+                                     FontSize="11" TextWrapping="Wrap" HorizontalContentAlignment="Center" Margin="0,8,0,8"/>
+                            <Button Style="{StaticResource FlatButton}" Content="Trocar código" Click="PhoneNewCode_Click"
+                                    ToolTip="Celulares que já leram o código antigo deixam de acessar."/>
+                        </StackPanel>
                         <TextBlock Text="MODO COMPATIBILIDADE TOTAL (OPCIONAL)" Style="{StaticResource SettingLabel}" Margin="0,20,0,8"/>
                         <TextBlock x:Name="CompatStatusText" Style="{StaticResource Hint}"/>
                         <Button x:Name="CompatButton" Style="{StaticResource FlatButton}" Margin="0,10,0,0" Click="Compat_Click"/>
@@ -225,6 +241,9 @@
                         <TextBlock Text="&#xE8FD;" Style="{StaticResource Icon}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                 </StackPanel>
+                <Button Style="{StaticResource FlatButton}" Content="Configurar volante" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Margin="0,190,0,0" Padding="18,0" Click="MapWheel_Click"
+                        ToolTip="Ensina ao app onde ficam os pedais, as marchas e os botões deste G27 (alguns volantes vêm diferentes)."/>
                 <Border x:Name="DeviceCard" Width="640" Height="128" CornerRadius="4" Background="{StaticResource Card}" Cursor="Hand"
                         VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,80" MouseLeftButtonUp="DeviceCard_Click">
                     <Grid Margin="22,0">
@@ -411,6 +430,8 @@
                                 <c:SettingSlider x:Name="GainSlider" Label="Intensidade global" Value="100"/>
                                 <c:SettingSlider x:Name="MinForceSlider" Label="Força mínima (zona morta do centro)" Maximum="30" Value="0"
                                                  ToolTip="O G27 não sente forças muito pequenas perto do centro. Suba aos poucos (5–10%) até sentir os detalhes sem o volante tremer parado."/>
+                                <c:SettingSlider x:Name="CurveSlider" Label="Reforço das forças fracas" Value="0"
+                                                 ToolTip="Corrige a resposta das engrenagens do G27, que engolem forças fracas: sobe as forças pequenas e médias sem mudar a força máxima. 0% = linear (como o jogo manda). Comece com 20–40%."/>
                                 <c:SettingSlider x:Name="SpringSlider" Label="Intensidade da mola" Value="100"/>
                                 <c:SettingSlider x:Name="DamperSlider" Label="Intensidade do amortecimento" Value="100"/>
                                 <CheckBox x:Name="CenterCheck" Content="Força central" Margin="0,4,0,12"
@@ -420,6 +441,17 @@
                                           ToolTip="Ligado: o jogo pode baixar a intensidade geral do force feedback pelas opções dele. Desligado: vale só a INTENSIDADE GLOBAL daqui."/>
                                 <CheckBox x:Name="InvertCheck" Content="Inverter força" Margin="0,0,0,24"
                                           ToolTip="O padrão já é o mesmo sentido do LGS (como os jogos foram ajustados). Marque só se um jogo empurrar o volante para o batente em vez de voltar ao centro."/>
+                                <TextBlock Text="VIBRAÇÃO EXTRA (TELEMETRIA)" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/>
+                                <CheckBox x:Name="VibCheck" Content="Somar a vibração do jogo ao force feedback" Margin="0,0,0,14"
+                                          ToolTip="Motor, zebras e buracos, ABS, trocas de marcha e batidas, lidos da telemetria do jogo: BeamNG e ETS2/ATS (mod e plugin da aba LEDs), Assetto Corsa/ACC, Forza, F1 e LFS. Desligado de fábrica."/>
+                                <StackPanel IsEnabled="{Binding IsChecked, ElementName=VibCheck}">
+                                    <c:SettingSlider x:Name="VibEngineSlider" Label="Motor" Value="20"/>
+                                    <c:SettingSlider x:Name="VibRoadSlider" Label="Pista, zebras e buracos" Value="50"/>
+                                    <c:SettingSlider x:Name="VibAbsSlider" Label="ABS" Value="50"/>
+                                    <c:SettingSlider x:Name="VibShiftSlider" Label="Troca de marcha" Value="40"/>
+                                    <c:SettingSlider x:Name="VibImpactSlider" Label="Batidas" Value="60"/>
+                                </StackPanel>
+                                <TextBlock x:Name="VibHint" Style="{StaticResource Hint}" Margin="0,0,0,22"/>
                                 <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                     <Button Style="{StaticResource FlatButton}" Content="Teste automático" Click="StartFfbTest_Click"
@@ -597,7 +629,9 @@
                                            Text="Tudo ao vivo: gire o volante, pise nos pedais, troque as marchas e aperte os botões."/>
                                 <Button Style="{StaticResource FlatButton}" Content="Pulso de força de teste" Margin="0,0,0,10" Click="Pulse_Click"/>
                                 <Button Style="{StaticResource FlatButton}" Content="Reaplicar modo nativo e rotação" Margin="0,0,0,10" Click="Reapply_Click"/>
-                                <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Click="Calibrate_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Calibrar pedais" Margin="0,0,0,10" Click="Calibrate_Click"/>
+                                <Button Style="{StaticResource FlatButton}" Content="Configurar volante" Click="MapWheel_Click"
+                                        ToolTip="Pedal, marcha ou botão aparecendo errado aqui? Ensine ao app onde fica cada um."/>
                             </StackPanel>
                         </ScrollViewer>
                         <Grid Grid.Column="1" Margin="24">
@@ -834,6 +868,42 @@
                         <Button Style="{StaticResource FlatButton}" Content="Cancelar" Margin="0,0,10,0" Click="CalibCancel_Click"/>
                         <Button x:Name="CalibNext" Style="{StaticResource AccentButton}" MinWidth="130" Click="CalibNext_Click"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ===================== configurar volante (mapa de eixos e botões) ===================== -->
+        <Grid x:Name="MapOverlay" Grid.RowSpan="2" Background="#E6000000" Visibility="Collapsed">
+            <Border Width="600" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#141923" BorderBrush="#242D3F" BorderThickness="1" CornerRadius="6" Padding="30,22">
+                <StackPanel>
+                    <TextBlock Text="Configurar volante" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,18"
+                               Text="Ensina ao app onde ficam os pedais, as marchas e os botões do seu G27 (alguns volantes vêm diferentes). Os jogos não mudam: neles, o mapeamento continua nas opções de controle de cada jogo."/>
+                    <!-- o que fazer em cada passo, animado nos desenhos próprios -->
+                    <Grid Height="220" Margin="0,0,0,18">
+                        <c:G27Wheel x:Name="MapDemoWheel" Visibility="Collapsed"/>
+                        <TextBlock x:Name="MapDemoArrow" FontFamily="Segoe UI Symbol" FontSize="84" Foreground="{StaticResource Accent}"
+                                   VerticalAlignment="Center" Visibility="Collapsed"/>
+                        <c:G27Pedals x:Name="MapDemoPedals" Visibility="Collapsed"/>
+                        <c:G27Shifter x:Name="MapDemoShifter" Visibility="Collapsed"/>
+                    </Grid>
+                    <TextBlock x:Name="MapCount" Style="{StaticResource SettingLabel}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="MapStep" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <Grid Height="8" Margin="0,0,0,8">
+                        <Border Background="#232B3A" CornerRadius="4"/>
+                        <Border x:Name="MapBar" Background="{StaticResource Accent}" CornerRadius="4" HorizontalAlignment="Left" Width="0"/>
+                    </Grid>
+                    <TextBlock x:Name="MapHint" Style="{StaticResource Hint}" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="MapLast" Style="{StaticResource Hint}" Foreground="{StaticResource Ok}" MinHeight="18"/>
+                    <DockPanel Margin="0,22,0,0">
+                        <Button Style="{StaticResource FlatButton}" Content="Voltar ao de fábrica" Click="MapDefault_Click"
+                                ToolTip="Volta ao mapa padrão do G27 (o que o app usava antes)."/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource FlatButton}" Content="Cancelar" Margin="0,0,10,0" Click="MapCancel_Click"/>
+                            <Button x:Name="MapSkip" Style="{StaticResource FlatButton}" Content="Pular" MinWidth="100" Click="MapSkip_Click"/>
+                            <Button x:Name="MapSave" Style="{StaticResource AccentButton}" Content="Salvar" MinWidth="130" Click="MapSave_Click" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
             </Border>
         </Grid>

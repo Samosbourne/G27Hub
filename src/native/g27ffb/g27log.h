@@ -14,4 +14,8 @@ void hub_log(const char *nivel, const char *fmt, ...);
    Local\G27Hub_Shared, para o app mostrar o grafico e o clipping. */
 void hub_publish(LONG force, BOOL clipped);
 
+/* Vibracao extra pedida pelo app (motor, pista, trancos), -10000..10000; 0 sem app ou sem telemetria.
+   Chamada a cada tick do mixer (dt em segundos). */
+LONG hub_vibration(double dt);
+
 #endif /* G27LOG_H */

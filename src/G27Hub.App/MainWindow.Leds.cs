@@ -19,6 +19,7 @@ public partial class MainWindow
     volatile int _ledMask; // o que está aceso no volante (-1 = reenviar)
     long _ledHoldUntil;
     volatile TelemetryFrame? _ledFrame;
+    readonly VibrationMixer _vibration = new();
     int _shownLedMask = -1;
 
     LedSettings L => _config.Leds;
@@ -27,6 +28,12 @@ public partial class MainWindow
     void StartLeds()
     {
         _telemetry.Start();
+        try
+        {
+            BeamNgTelemetry.UpdateIfOld();
+            ScsTelemetry.UpdateIfOld(ScsTelemetry.GameDirs());
+        }
+        catch (Exception ex) { AppLog.Erro("TELEMETRIA", "Não deu para atualizar o mod/plugin de telemetria", ex); }
         _dev.ConnectionChanged += _ => _ledMask = -1; // volante religado começa apagado
         new Thread(() => { while (true) { LedTick(); Thread.Sleep(15); } }) { IsBackground = true, Name = "LEDs" }.Start();
     }
@@ -35,6 +42,7 @@ public partial class MainWindow
     {
         var now = Environment.TickCount64;
         var f = _ledFrame = _telemetry.Current;
+        FfbShared.WriteVibration(_vibration.Step(f, W)); // a DLL soma à força do jogo (Fase 10)
         if (now < Interlocked.Read(ref _ledHoldUntil) || !_dev.IsConnected) return;
         int mask = f != null && L.On ? RpmLeds.Mask(f, L, now) : 0;
         if (mask == _ledMask) return;

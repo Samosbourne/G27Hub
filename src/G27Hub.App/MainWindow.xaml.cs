@@ -55,6 +55,7 @@ public partial class MainWindow : Window
 
     public MainWindow(bool connect)
     {
+        G27Buttons.Map = _config.Map; // antes dos desenhos: eles leem os números dos botões
         InitializeComponent();
         LangUi.Translate(this);
         (Icon, TrayIcon) = MakeIcons();
@@ -75,10 +76,11 @@ public partial class MainWindow : Window
         VerboseCheck.IsChecked = AppLog.Verbose;
 
         LoadSettingsIntoUi();
-        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, MinForceSlider, SpringSlider, DamperSlider, CenterSlider,
-                                  SteerSensSlider, ClutchSensSlider, BrakeSensSlider, ThrottleSensSlider })
+        foreach (var s in new[] { RangeSlider, AutocenterSlider, GainSlider, MinForceSlider, CurveSlider, SpringSlider, DamperSlider, CenterSlider,
+                                  SteerSensSlider, ClutchSensSlider, BrakeSensSlider, ThrottleSensSlider,
+                                  VibEngineSlider, VibRoadSlider, VibAbsSlider, VibShiftSlider, VibImpactSlider })
             s.ValueChanged += _ => SettingChanged();
-        foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck, AllowGameCheck })
+        foreach (var c in new[] { AutocenterCheck, CenterCheck, InvertCheck, AllowGameCheck, VibCheck })
             c.Click += (_, _) => SettingChanged();
         FfbEnabled.Click += (_, _) => ToggleFfb();
         AssignWheel.HotspotClicked += SelectButton;
@@ -102,6 +104,8 @@ public partial class MainWindow : Window
         StartCompat();
         StartSpin();
         MaybeShowWizard();
+        MaybeCheckUpdates();
+        StartPhone();
         UpdateCalibStatus();
         _dev.ConnectionChanged += c => Dispatcher.BeginInvoke(() => OnConnection(c));
         _dev.Start();
@@ -128,6 +132,7 @@ public partial class MainWindow : Window
             if (HomeScreen.Visibility == Visibility.Visible) ShowScreen(DevicesScreen);
             UpdateDeviceStatus();
             ShowToast("G27", "Ok", T("G27 conectado"), _dev.IsNative ? T($"Modo nativo, {_dev.Range}°. Pode abrir o jogo.") : T("Conectado, mas fora do modo nativo. Use \"Reaplicar\" na aba Teste."));
+            if (_dev.IsNative && WizardOverlay.Visibility != Visibility.Visible) CheckMap();
         }
         else
         {
@@ -185,7 +190,7 @@ public partial class MainWindow : Window
                 TestAngle.Text = T($"{_shownAngle:+0.0;-0.0;0.0}°");
                 TestMin.Text = T($"-{W.Range / 2}°");
                 TestMax.Text = T($"+{W.Range / 2}°");
-                if (s.Axes.TryGetValue("X", out var x))
+                if (s.Axes.TryGetValue(G27Buttons.Map.Steer, out var x))
                 {
                     TestRaw.Text = T($"bruto {x.Value} / {x.Max}");
                     TestMarker.Margin = new Thickness(x.Normalized * Math.Max(TestTrack.ActualWidth - 10, 0), 0, 0, 0);
@@ -301,6 +306,7 @@ public partial class MainWindow : Window
         FfbEnabled.IsChecked = FfbRegistration.IsRegistered();
         GainSlider.Value = w.MasterGain;
         MinForceSlider.Value = w.MinForce;
+        CurveSlider.Value = w.ForceCurve;
         AllowGameCheck.IsChecked = w.AllowGame;
         SpringSlider.Value = w.SpringGain;
         DamperSlider.Value = w.DamperGain;
@@ -311,10 +317,17 @@ public partial class MainWindow : Window
         ClutchSensSlider.Value = w.ClutchSensitivity;
         BrakeSensSlider.Value = w.BrakeSensitivity;
         ThrottleSensSlider.Value = w.ThrottleSensitivity;
+        VibCheck.IsChecked = w.VibOn;
+        VibEngineSlider.Value = w.VibEngine;
+        VibRoadSlider.Value = w.VibRoad;
+        VibAbsSlider.Value = w.VibAbs;
+        VibShiftSlider.Value = w.VibShift;
+        VibImpactSlider.Value = w.VibImpact;
         StartWithWindowsCheck.IsChecked = AutoStart.Enabled;
         CloseToTrayCheck.IsChecked = _config.CloseToTray;
         NotificationsCheck.IsChecked = _config.Notifications;
         DetectorCheck.IsChecked = _config.DetectorOn;
+        UpdateCheck.IsChecked = _config.UpdateCheckOn;
         UpdateArc(w.Range, 0);
         UpdateProfileHeader();
         RefreshAssignmentsUi();
@@ -338,6 +351,7 @@ public partial class MainWindow : Window
         w.AutocenterOn = AutocenterCheck.IsChecked == true;
         w.MasterGain = (int)Math.Round(GainSlider.Value);
         w.MinForce = (int)Math.Round(MinForceSlider.Value);
+        w.ForceCurve = (int)Math.Round(CurveSlider.Value);
         w.SpringGain = (int)Math.Round(SpringSlider.Value);
         w.DamperGain = (int)Math.Round(DamperSlider.Value);
         w.CenterSpring = CenterCheck.IsChecked == true ? Math.Max(1, (int)Math.Round(CenterSlider.Value)) : 0;
@@ -347,6 +361,12 @@ public partial class MainWindow : Window
         w.ClutchSensitivity = (int)Math.Round(ClutchSensSlider.Value);
         w.BrakeSensitivity = (int)Math.Round(BrakeSensSlider.Value);
         w.ThrottleSensitivity = (int)Math.Round(ThrottleSensSlider.Value);
+        w.VibOn = VibCheck.IsChecked == true;
+        w.VibEngine = (int)Math.Round(VibEngineSlider.Value);
+        w.VibRoad = (int)Math.Round(VibRoadSlider.Value);
+        w.VibAbs = (int)Math.Round(VibAbsSlider.Value);
+        w.VibShift = (int)Math.Round(VibShiftSlider.Value);
+        w.VibImpact = (int)Math.Round(VibImpactSlider.Value);
         _config.Save();
         ApplyWheel(force: false);
     }
@@ -375,6 +395,7 @@ public partial class MainWindow : Window
         SetFfb("CenterSpring", w.CenterSpring, 0);
         SetFfb("Invert", w.Invert ? 1 : 0, 0);
         SetFfb("MinForce", w.MinForce, 0);
+        FfbRegistration.SetForceCurve(w.ForceCurve);
         SetFfb("AllowGame", w.AllowGame ? 1 : 0, 1);
     }
 
@@ -413,8 +434,12 @@ public partial class MainWindow : Window
     void RestoreFfb_Click(object sender, RoutedEventArgs e)
     {
         GainSlider.Value = SpringSlider.Value = DamperSlider.Value = 100;
-        MinForceSlider.Value = 0;
+        MinForceSlider.Value = CurveSlider.Value = 0;
         AllowGameCheck.IsChecked = true;
+        var d = new WheelSettings();
+        VibCheck.IsChecked = d.VibOn;
+        (VibEngineSlider.Value, VibRoadSlider.Value, VibAbsSlider.Value, VibShiftSlider.Value, VibImpactSlider.Value) =
+            (d.VibEngine, d.VibRoad, d.VibAbs, d.VibShift, d.VibImpact);
         CenterSlider.Value = 20;
         CenterCheck.IsChecked = InvertCheck.IsChecked = false;
         SettingChanged();
@@ -617,6 +642,10 @@ public partial class MainWindow : Window
 
     void UpdateForce()
     {
+        var tf = _ledFrame;
+        VibHint.Text = VibCheck.IsChecked != true ? ""
+            : tf == null ? T("Sem telemetria agora: abra um jogo. BeamNG e ETS2/ATS precisam do mod/plugin da aba LEDs.")
+            : T($"Recebendo telemetria: {tf.Source}") + (tf.Accel == null ? T(" (este jogo não manda pista nem batidas)") : "");
         var f = FfbShared.Read();
         var active = f is { AgeMs: < 500 };
         _force.Enqueue(active ? f!.Force / 10000.0 : 0);
@@ -967,6 +996,38 @@ public partial class MainWindow : Window
         CompatTick(null, EventArgs.Empty);
         Shot("17-instalando-drivers");
         CompatOverlay.Visibility = Visibility.Collapsed;
+
+        // configurar volante, no passo da embreagem (sem volante: estado inventado)
+        var fake = new G27State(new Dictionary<string, AxisValue> { ["X"] = new(8192, 0, 16383), ["Y"] = new(127, 0, 255), ["Z"] = new(255, 0, 255),
+            ["Rz"] = new(255, 0, 255), ["Slider"] = new(255, 0, 255) }, [], -1, 900);
+        _learner = new InputMapLearner(_config.Map);
+        _learner.Begin(fake);
+        for (int i = 0; i < 4; i++) _learner.Skip(fake);
+        _mapLast = T(InputMapLearner.Steps[3].Text) + ": ✓ " + Learned(3);
+        ShowMapStep();
+        MapOverlay.Visibility = Visibility.Visible;
+        UpdateLayout();
+        MapBar.Width = ((FrameworkElement)MapBar.Parent).ActualWidth * 0.62;
+        AnimateMapDemo(0.5);
+        UpdateLayout();
+        Shot("20-configurar-volante");
+        _learner.Skip(fake);
+        ShowMapStep();
+        AnimateMapDemo(0.3);
+        UpdateLayout();
+        Shot("21-configurar-volante-marcha");
+        _learner = new InputMapLearner(_config.Map);
+        _learner.Begin(fake);
+        ShowMapStep();
+        AnimateMapDemo(0.5);
+        UpdateLayout();
+        Shot("22-configurar-volante-giro");
+        for (int i = 0; i < 13; i++) _learner.Skip(fake);
+        ShowMapStep();
+        AnimateMapDemo(0.1);
+        UpdateLayout();
+        Shot("23-configurar-volante-botao");
+        CloseMap();
         _dev.Dispose();
     }
 }

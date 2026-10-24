@@ -14,7 +14,9 @@ public sealed record PedalRange(int Pressed, int Released);
 public static class PedalCalibration
 {
     public const string Key = @"System\CurrentControlSet\Control\MediaProperties\PrivateProperties\DirectInput\VID_046D&PID_C29B\Calibration\0\Type\Axes";
-    static readonly Dictionary<string, int> Instance = new() { ["Y"] = 1, ["Z"] = 2, ["Rz"] = 5 };
+    // instância DirectInput = posição do eixo no DIJOYSTATE (por isso Rz é 5 mesmo com só 4 eixos); Rx/Ry/Slider/Dial
+    // só aparecem em volantes com outro mapa (InputMap)
+    static readonly Dictionary<string, int> Instance = new() { ["Y"] = 1, ["Z"] = 2, ["Rx"] = 3, ["Ry"] = 4, ["Rz"] = 5, ["Slider"] = 6, ["Dial"] = 7 };
 
     /// <summary>Calibração em vigor (o app também usa: desenho dos pedais e volante virtual). Eixo → faixa.</summary>
     public static IReadOnlyDictionary<string, PedalRange> Current { get; private set; } = Load();

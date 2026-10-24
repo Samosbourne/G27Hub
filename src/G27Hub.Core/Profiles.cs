@@ -12,6 +12,8 @@ public sealed class WheelSettings
     public bool AutocenterOn { get; set; } = true;
     public int MasterGain { get; set; } = 100;
     public int MinForce { get; set; }
+    /// <summary>Reforço das forças fracas (Fase 10): 0 = linear; sobe o começo da curva sem mudar os 100%.</summary>
+    public int ForceCurve { get; set; }
     public int SpringGain { get; set; } = 100;
     public int DamperGain { get; set; } = 100;
     public int CenterSpring { get; set; } // 0 = força central desligada
@@ -23,6 +25,13 @@ public sealed class WheelSettings
     public int ThrottleSensitivity { get; set; } = 50;
     public int BrakeSensitivity { get; set; } = 50;
     public int ClutchSensitivity { get; set; } = 50;
+    /// <summary>Vibração extra pela telemetria (Fase 10): desligada de fábrica; força de cada efeito em %.</summary>
+    public bool VibOn { get; set; }
+    public int VibEngine { get; set; } = 20;
+    public int VibRoad { get; set; } = 50;
+    public int VibShift { get; set; } = 40;
+    public int VibAbs { get; set; } = 50;
+    public int VibImpact { get; set; } = 60;
 
     public WheelSettings Clone() => (WheelSettings)MemberwiseClone();
 }
@@ -75,8 +84,16 @@ public sealed class AppConfig
     public bool CompatOn { get; set; }
     /// <summary>Assistente da primeira abertura já foi concluído ou pulado (Fase 9).</summary>
     public bool FirstRunDone { get; set; }
+    /// <summary>Eixos e botões deste volante (assistente "Configurar volante"). Padrão = G27 do John.</summary>
+    public InputMap Map { get; set; } = new();
     /// <summary>Idioma da interface: "pt" (padrão) ou "en".</summary>
     public string Language { get; set; } = "pt";
+    /// <summary>Avisar quando houver versão nova no GitHub (Fase 10). Desligado de fábrica; procura no máximo 1x por dia.</summary>
+    public bool UpdateCheckOn { get; set; }
+    public DateTime LastUpdateCheck { get; set; }
+    /// <summary>Painel no celular pela rede de casa (Fase 10). Desligado de fábrica; PhoneToken vai no QR code.</summary>
+    public bool PhoneOn { get; set; }
+    public string? PhoneToken { get; set; }
     public List<Profile> Profiles { get; set; } = [];
 
     // legado da Fase 4, só lido para migrar

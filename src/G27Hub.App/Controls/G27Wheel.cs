@@ -17,9 +17,11 @@ public sealed class G27Wheel : UserControl
 {
     readonly RotateTransform _rot = new(0, 200, 200);
     readonly Shape[] _leds = new Shape[10];
+    readonly List<(Func<int> Num, Shape Shape)> _slots = []; // cada botão desenhado e de onde vem o número dele (InputMap)
     readonly Dictionary<int, Shape> _buttons = []; // número do botão → forma no desenho
     readonly Canvas _hotspots = new() { Visibility = Visibility.Collapsed };
     int _highlight = -1; // botão escolhido na aba Atribuições
+    Shape? _demo;        // botão piscando no "Configurar volante"
     IReadOnlyCollection<int> _pressed = [];
 
     public event Action<int>? HotspotClicked;
@@ -29,8 +31,8 @@ public sealed class G27Wheel : UserControl
         var c = new Canvas { Width = 400, Height = 400, RenderTransform = _rot };
 
         // borboletas (atrás de tudo)
-        _buttons[G27Buttons.PaddleLeft] = c.At(Paddle(false), 0, 0);
-        _buttons[G27Buttons.PaddleRight] = c.At(Paddle(true), 0, 0);
+        _slots.Add((() => G27Buttons.PaddleLeft, c.At(Paddle(false), 0, 0)));
+        _slots.Add((() => G27Buttons.PaddleRight, c.At(Paddle(true), 0, 0)));
 
         // raios de alumínio escovado
         var metal = new LinearGradientBrush([new GradientStop(Color.FromRgb(0xC9, 0xC9, 0xC9), 0), new GradientStop(Color.FromRgb(0x9A, 0x9A, 0x9A), 0.5), new GradientStop(Color.FromRgb(0xB8, 0xB8, 0xB8), 1)], 90);
@@ -43,7 +45,7 @@ public sealed class G27Wheel : UserControl
         c.At(Draw.Circle(344, Brushes.Transparent, Draw.Hex("#3A3A3A"), 1), 28, 28).StrokeDashArray = [2.5, 2];
 
         // laterais cinza com 3 botões vermelhos cada (formato de seta, como no G27)
-        foreach (var (x, nums, right) in new[] { (44.0, G27Buttons.WheelLeft, false), (326.0, G27Buttons.WheelRight, true) })
+        foreach (var (x, right) in new[] { (44.0, false), (326.0, true) })
         {
             c.At(Draw.Box(30, 92, 6, Draw.Hex("#4A4A4C"), Draw.Hex("#2A2A2A"), 1.5), x, 150);
             for (int i = 0; i < 3; i++)
@@ -53,7 +55,8 @@ public sealed class G27Wheel : UserControl
                     Data = Geometry.Parse(right ? "M 0,2 L 14,0 Q 20,7 14,14 L 0,12 Z" : "M 20,2 L 6,0 Q 0,7 6,14 L 20,12 Z"),
                     Fill = Draw.Hex("#D42A2A"), Stroke = Draw.Hex("#5A0A0A"), StrokeThickness = 1,
                 };
-                _buttons[nums[i]] = c.At(b, x + 5, 160 + i * 26);
+                int k = i;
+                _slots.Add((() => (right ? G27Buttons.WheelRight : G27Buttons.WheelLeft)[k], c.At(b, x + 5, 160 + i * 26)));
             }
         }
 
@@ -75,7 +78,20 @@ public sealed class G27Wheel : UserControl
         c.At(Draw.Circle(70, Draw.Hex("#050505"), Draw.Hex("#222"), 1), 165, 165);
         c.At(Draw.Label("G27", 14, Draw.Hex("#6E6E6E"), 70), 165, 191);
 
+        c.Children.Add(_hotspots);
+        Remap();
+
+        Content = new Viewbox { Child = c };
+        SetLeds(0);
+    }
+
+    /// <summary>Relê os números dos botões do mapa (depois do "Configurar volante") e refaz os pontos clicáveis.</summary>
+    public void Remap()
+    {
+        _buttons.Clear();
+        foreach (var (num, shape) in _slots) _buttons[num()] = shape;
         // pontos clicáveis da aba Atribuições, com o número real do botão
+        _hotspots.Children.Clear();
         foreach (var (num, shape) in _buttons)
         {
             var center = Center(shape);
@@ -85,10 +101,7 @@ public sealed class G27Wheel : UserControl
             dot.MouseLeftButtonUp += (_, _) => HotspotClicked?.Invoke(num);
             _hotspots.At(dot, center.X - 12 + (center.X < 200 ? -26 : 26), center.Y - 12);
         }
-        c.Children.Add(_hotspots);
-
-        Content = new Viewbox { Child = c };
-        SetLeds(0);
+        if (_highlight >= 0) Highlight(_highlight);
     }
 
     static Path Paddle(bool right)
@@ -132,10 +145,28 @@ public sealed class G27Wheel : UserControl
         foreach (var (num, shape) in _buttons)
         {
             var on = pressed.Contains(num);
-            var chosen = num == _highlight && _hotspots.Visibility == Visibility.Visible;
-            shape.Stroke = on || chosen ? Draw.Hex("#00D2FF") : num is G27Buttons.PaddleLeft or G27Buttons.PaddleRight ? Draw.Hex("#3A3A3A") : Draw.Hex("#5A0A0A");
+            var chosen = num == _highlight && _hotspots.Visibility == Visibility.Visible || ReferenceEquals(shape, _demo);
+            shape.Stroke = on || chosen ? Draw.Hex("#00D2FF") : num == G27Buttons.PaddleLeft || num == G27Buttons.PaddleRight ? Draw.Hex("#3A3A3A") : Draw.Hex("#5A0A0A");
             shape.StrokeThickness = on ? 3.5 : chosen ? 2.5 : 1;
             shape.Effect = chosen ? Glow : null;
+        }
+    }
+
+    /// <summary>
+    /// "Configurar volante": acende o botão de um lugar do desenho, seja qual for o número dele no mapa.
+    /// Lugar 0 = borboleta esquerda, 1 = direita, 2–4 = vermelhos da esquerda (cima→baixo), 5–7 = da direita; -1 apaga.
+    /// </summary>
+    public void Demo(int slot, bool on)
+    {
+        _demo = on && slot >= 0 ? _slots[slot].Shape : null;
+        foreach (var (_, shape) in _slots) Style(shape);
+        void Style(Shape shape)
+        {
+            var lit = ReferenceEquals(shape, _demo);
+            var paddle = ReferenceEquals(shape, _slots[0].Shape) || ReferenceEquals(shape, _slots[1].Shape);
+            shape.Stroke = lit ? Draw.Hex("#00D2FF") : paddle ? Draw.Hex("#3A3A3A") : Draw.Hex("#5A0A0A");
+            shape.StrokeThickness = lit ? 3.5 : 1;
+            shape.Effect = lit ? Glow : null;
         }
     }
 

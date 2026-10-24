@@ -1,5 +1,5 @@
 // G27 Hub: plugin de telemetria do Euro Truck Simulator 2 / American Truck Simulator.
-// Manda RPM, RPM máxima do caminhão, marcha e combustível para o app (UDP 127.0.0.1:4445, ~60 Hz),
+// Manda RPM, RPM máxima do caminhão, marcha, combustível, velocidade e aceleração para o app (UDP 127.0.0.1:4445, ~60 Hz),
 // no mesmo pacote do mod do BeamNG com a assinatura "G27T". Usa o SCS SDK (MIT, ver ../scssdk/LICENSE-scssdk.txt).
 // Instalado pelo app em <jogo>\bin\win_x64\plugins\; desfazer = apagar o arquivo.
 #include <winsock2.h>
@@ -16,14 +16,17 @@ struct Packet
     float rpm, maxRpm, idleRpm;
     int gear, shiftLight;
     float fuel; // 0–1
+    // Fase 10 (vibração extra): velocidade m/s, ABS 0–1, aceleração m/s² (lateral, vertical, longitudinal)
+    float speed, abs, accLat, accVert, accLong;
 };
 #pragma pack(pop)
-static_assert(sizeof(Packet) == 28, "o app lê 28 bytes");
+static_assert(sizeof(Packet) == 48, "o app lê 48 bytes (28 nas versões antigas)");
 
 static SOCKET sock = INVALID_SOCKET;
 static sockaddr_in to;
 static bool paused = true;
-static float rpm, maxRpm, fuel, fuelCapacity;
+static float rpm, maxRpm, fuel, fuelCapacity, speed;
+static scs_value_fvector_t acc; // x direita, y cima, z para trás
 static int gear;
 static ULONGLONG lastSend;
 
@@ -32,7 +35,8 @@ static SCSAPI_VOID on_frame_end(const scs_event_t, const void *const, const scs_
     ULONGLONG now = GetTickCount64();
     if (paused || sock == INVALID_SOCKET || now - lastSend < 15) return; // pausado = o app apaga os LEDs em 1 s
     lastSend = now;
-    Packet p = {{'G', '2', '7', 'T'}, rpm, maxRpm, 0, gear, 0, fuelCapacity > 0 ? fuel / fuelCapacity : 0};
+    Packet p = {{'G', '2', '7', 'T'}, rpm, maxRpm, 0, gear, 0, fuelCapacity > 0 ? fuel / fuelCapacity : 0,
+                speed, 0, acc.x, acc.y, -acc.z};
     sendto(sock, reinterpret_cast<const char *>(&p), sizeof p, 0, reinterpret_cast<const sockaddr *>(&to), sizeof to);
 }
 
@@ -55,6 +59,11 @@ static SCSAPI_VOID on_configuration(const scs_event_t, const void *const event_i
 static SCSAPI_VOID store_float(const scs_string_t, const scs_u32_t, const scs_value_t *const value, const scs_context_t context)
 {
     *static_cast<float *>(context) = value->value_float.value;
+}
+
+static SCSAPI_VOID store_fvector(const scs_string_t, const scs_u32_t, const scs_value_t *const value, const scs_context_t context)
+{
+    *static_cast<scs_value_fvector_t *>(context) = value->value_fvector;
 }
 
 static SCSAPI_VOID store_s32(const scs_string_t, const scs_u32_t, const scs_value_t *const value, const scs_context_t context)
@@ -84,6 +93,8 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
     p->register_for_channel(SCS_TELEMETRY_TRUCK_CHANNEL_engine_rpm, SCS_U32_NIL, SCS_VALUE_TYPE_float, SCS_TELEMETRY_CHANNEL_FLAG_none, store_float, &rpm);
     p->register_for_channel(SCS_TELEMETRY_TRUCK_CHANNEL_engine_gear, SCS_U32_NIL, SCS_VALUE_TYPE_s32, SCS_TELEMETRY_CHANNEL_FLAG_none, store_s32, &gear);
     p->register_for_channel(SCS_TELEMETRY_TRUCK_CHANNEL_fuel, SCS_U32_NIL, SCS_VALUE_TYPE_float, SCS_TELEMETRY_CHANNEL_FLAG_none, store_float, &fuel);
+    p->register_for_channel(SCS_TELEMETRY_TRUCK_CHANNEL_speed, SCS_U32_NIL, SCS_VALUE_TYPE_float, SCS_TELEMETRY_CHANNEL_FLAG_none, store_float, &speed);
+    p->register_for_channel(SCS_TELEMETRY_TRUCK_CHANNEL_local_linear_acceleration, SCS_U32_NIL, SCS_VALUE_TYPE_fvector, SCS_TELEMETRY_CHANNEL_FLAG_none, store_fvector, &acc);
 
     p->common.log(ok ? SCS_LOG_TYPE_message : SCS_LOG_TYPE_error,
         ok ? "G27 Hub: telemetria para os LEDs do G27 ativa (127.0.0.1:4445)" : "G27 Hub: falha ao registrar eventos");

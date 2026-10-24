@@ -14,7 +14,8 @@ namespace G27Hub.App;
 /// </summary>
 public partial class MainWindow
 {
-    static readonly (string Axis, string Name)[] CalibPedals = [("Y", T("Embreagem")), ("Rz", T("Freio")), ("Z", T("Acelerador"))];
+    static (string Axis, string Name)[] CalibPedals =>
+        [(G27Buttons.Map.Clutch, T("Embreagem")), (G27Buttons.Map.Brake, T("Freio")), (G27Buttons.Map.Throttle, T("Acelerador"))];
     int _calibStep; // 0 = fechado, 1 = soltos, 2 = pisando
     readonly Dictionary<string, (int Released, int Pressed)> _calib = [];
     readonly List<(Border Fill, TextBlock Text)> _calibRows = [];

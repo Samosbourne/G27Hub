@@ -1,14 +1,19 @@
 using System.IO.MemoryMappedFiles;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using G27Hub.Logging;
 using static System.Buffers.Binary.BinaryPrimitives;
 
 namespace G27Hub.Core;
 
-/// <summary>Um instante da telemetria do jogo. Gear: -1 ré, 0 neutro, 1… marchas. Fuel 0–1 (null = jogo não manda).</summary>
+/// <summary>
+/// Um instante da telemetria do jogo. Gear: -1 ré, 0 neutro, 1… marchas. Fuel 0–1, Speed km/h, Abs 0–1 (ABS agindo),
+/// Accel m/s² em (lateral, vertical, longitudinal) do carro (null = jogo não manda).
+/// </summary>
 public sealed record TelemetryFrame(string Source, float Rpm, float MaxRpm, int? Gear,
-    bool ShiftLight = false, bool PitLimiter = false, float? Fuel = null, float? GamePercent = null);
+    bool ShiftLight = false, bool PitLimiter = false, float? Fuel = null, float? GamePercent = null, float? Speed = null,
+    float? Abs = null, Vector3? Accel = null);
 
 /// <summary>
 /// Leitores de telemetria dos jogos (Fase 7). Tudo em 127.0.0.1, sem admin e sem firewall:
@@ -94,12 +99,17 @@ public sealed class TelemetryHub : IDisposable
 
     // ================= formatos (públicos para os testes) =================
 
-    /// <summary>Pacote do mod do BeamNG ("G27H", <see cref="BeamNgTelemetry"/>) ou do plugin do ETS2/ATS ("G27T", <see cref="ScsTelemetry"/>).</summary>
+    /// <summary>
+    /// Pacote do mod do BeamNG ("G27H", <see cref="BeamNgTelemetry"/>) ou do plugin do ETS2/ATS ("G27T", <see cref="ScsTelemetry"/>).
+    /// 28 bytes (Fase 7) ou 48 com velocidade (m/s), ABS e aceleração (Fase 10).
+    /// </summary>
     public static TelemetryFrame? HubPacket(ReadOnlySpan<byte> b)
     {
         if (b.Length < 28 || b[0] != 'G' || b[1] != '2' || b[2] != '7' || b[3] is not ((byte)'H' or (byte)'T')) return null;
+        bool full = b.Length >= 48;
         return new(b[3] == 'H' ? "BeamNG.drive" : "ETS2 / ATS", F(b, 4), F(b, 8), ReadInt32LittleEndian(b[16..]),
-            ShiftLight: ReadInt32LittleEndian(b[20..]) != 0, Fuel: F(b, 24));
+            ShiftLight: ReadInt32LittleEndian(b[20..]) != 0, Fuel: F(b, 24),
+            Speed: full ? F(b, 28) * 3.6f : null, Abs: full ? F(b, 32) : null, Accel: full ? new(F(b, 36), F(b, 40), F(b, 44)) : null);
     }
 
     /// <summary>OutGauge do Live for Speed (o BeamNG também manda). Não tem RPM máxima: aprende a maior vista por carro.</summary>
@@ -112,14 +122,15 @@ public sealed class TelemetryHub : IDisposable
         maxSeen = Math.Max(maxSeen, rpm);
         uint lights = ReadUInt32LittleEndian(b[44..]);
         return new(name == "beam" ? "BeamNG.drive (OutGauge)" : "OutGauge (LFS)", rpm, maxSeen, b[10] - 1,
-            ShiftLight: (lights & 1) != 0, PitLimiter: (lights & 8) != 0, Fuel: F(b, 28));
+            ShiftLight: (lights & 1) != 0, PitLimiter: (lights & 8) != 0, Fuel: F(b, 28), Speed: F(b, 12) * 3.6f);
     }
 
     /// <summary>Forza "Data Out" (Sled ou Dash, Motorsport e Horizon). IsRaceOn = 0 nos menus.</summary>
     public static TelemetryFrame? Forza(byte[] b)
     {
         if (b.Length < 232 || ReadInt32LittleEndian(b) == 0) return null;
-        return new("Forza", F(b, 16), F(b, 8), null); // a marcha muda de posição entre as versões; os LEDs não precisam
+        // a marcha muda de posição entre as versões; os LEDs não precisam. Aceleração: X direita, Y cima, Z frente
+        return new("Forza", F(b, 16), F(b, 8), null, Accel: new(F(b, 20), F(b, 24), F(b, 28)));
     }
 
     /// <summary>F1 22–25 (EA/Codemasters): pacote Car Telemetry (id 6) do carro do jogador; usa a barra de giro do jogo.</summary>
@@ -132,7 +143,7 @@ public sealed class TelemetryHub : IDisposable
         if (id != 6 || b.Length < car + 60) return null;
         var gear = (sbyte)b[car + 15];
         return new($"F1 {(format >= 2023 ? format : 2022)}", ReadUInt16LittleEndian(b.AsSpan(car + 16)), 0, gear,
-            GamePercent: b[car + 19] / 100f);
+            GamePercent: b[car + 19] / 100f, Speed: ReadUInt16LittleEndian(b.AsSpan(car)));
     }
 
     static float F(ReadOnlySpan<byte> b, int at) => ReadSingleLittleEndian(b[at..]);
@@ -162,7 +173,9 @@ public sealed class TelemetryHub : IDisposable
                     }
                     float maxFuel = s.ReadSingle(416);
                     Push(new("Assetto Corsa / ACC", p.ReadInt32(20), s.ReadInt32(412), p.ReadInt32(16) - 1,
-                        PitLimiter: p.ReadInt32(248) != 0, Fuel: maxFuel > 0 ? p.ReadSingle(12) / maxFuel : null));
+                        PitLimiter: p.ReadInt32(248) != 0, Fuel: maxFuel > 0 ? p.ReadSingle(12) / maxFuel : null, Speed: p.ReadSingle(28),
+                        Abs: Math.Clamp(p.ReadSingle(252), 0, 1), // accG em g: x lateral, y vertical, z longitudinal
+                        Accel: new Vector3(p.ReadSingle(44), p.ReadSingle(48), p.ReadSingle(52)) * 9.81f));
                 }
             }
             catch (FileNotFoundException) { } // jogo fechado
@@ -198,6 +211,15 @@ public static class BeamNgTelemetry
         AppLog.Ok("TELEMETRIA", $"Mod de telemetria do BeamNG instalado em {dir ?? ModDir} (vale a partir do próximo carro carregado)");
     }
 
+    /// <summary>Mod instalado numa versão antiga (sem os campos da Fase 10): reescreve. Vale no próximo carro carregado.</summary>
+    public static void UpdateIfOld(string? dir = null)
+    {
+        var path = LuaPath(dir ?? ModDir);
+        if (!File.Exists(path) || File.ReadAllText(path) == Lua) return;
+        File.WriteAllText(path, Lua);
+        AppLog.Ok("TELEMETRIA", "Mod de telemetria do BeamNG atualizado (velocidade, ABS e aceleração para a vibração extra)");
+    }
+
     public static void Uninstall(string? dir = null)
     {
         dir ??= ModDir;
@@ -206,7 +228,8 @@ public static class BeamNgTelemetry
     }
 
     static readonly string Lua = $$"""
-        -- G27 Hub: RPM, RPM máxima, marcha e luz de troca para os LEDs do Logitech G27 (UDP 127.0.0.1:{{TelemetryHub.ModPort}}).
+        -- G27 Hub: RPM, RPM máxima, marcha e luz de troca para os LEDs do Logitech G27, e velocidade, ABS e aceleração
+        -- para a vibração extra no force feedback (UDP 127.0.0.1:{{TelemetryHub.ModPort}}).
         -- Instalado pelo G27 Hub; para remover, apague a pasta mods/unpacked/g27hub.
         local M = {}
 
@@ -226,6 +249,11 @@ public static class BeamNgTelemetry
             int   gear;
             int   shiftLight;
             float fuel;
+            float speed;
+            float abs;
+            float accLat;
+            float accVert;
+            float accLong;
           ]]
         end
 
@@ -239,6 +267,10 @@ public static class BeamNgTelemetry
           o.gear = e.gearIndex or 0
           o.shiftLight = e.shouldShift and 1 or 0
           o.fuel = e.fuel or 0
+          o.speed = e.wheelspeed or e.airspeed or 0
+          o.abs = (e.absActive or 0) ~= 0 and 1 or 0
+          local s = sensors.ffiSensors
+          o.accLat, o.accVert, o.accLong = -s.sensorX, -s.sensorZ, -s.sensorY
         end
 
         M.init = init
@@ -283,6 +315,24 @@ public static class ScsTelemetry
             Directory.CreateDirectory(Path.Combine(d, "plugins"));
             File.Copy(source, PluginPath(d), overwrite: true);
             AppLog.Ok("TELEMETRIA", $"Plugin de telemetria instalado em {PluginPath(d)}");
+        }
+    }
+
+    /// <summary>Plugin instalado numa versão antiga: copia o novo. Com o jogo aberto o arquivo está em uso; tenta na próxima abertura do app.</summary>
+    public static void UpdateIfOld(IEnumerable<string> dirs, string? source = null)
+    {
+        source ??= SourceDll;
+        if (!File.Exists(source)) return;
+        var fresh = File.ReadAllBytes(source);
+        foreach (var d in dirs.Where(d => File.Exists(PluginPath(d))))
+        {
+            if (File.ReadAllBytes(PluginPath(d)).AsSpan().SequenceEqual(fresh)) continue;
+            try
+            {
+                File.Copy(source, PluginPath(d), overwrite: true);
+                AppLog.Ok("TELEMETRIA", $"Plugin de telemetria atualizado em {PluginPath(d)}");
+            }
+            catch (IOException ex) { AppLog.Aviso("TELEMETRIA", $"Plugin do ETS2/ATS não atualizou (jogo aberto?): {ex.Message}"); }
         }
     }
 
