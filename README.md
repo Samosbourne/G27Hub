@@ -36,11 +36,12 @@ A first-run wizard checks old Logitech drivers, switches the wheel to native mod
 - **Full Compatibility Mode** (optional, off by default): vJoy + HidHide for games that do not accept the G27,
   with sensitivity curves, combined pedals and force feedback routed back to the G27.
 - **Pedal calibration** saved in Windows itself (applies to every game), **wheel test** like LGS, and a 3D mini-game to feel the force feedback.
+- **Set up wheel**: an animated step-by-step that teaches the app where each pedal, gear and button is
+  (some G27s come with a different layout; the app warns on connect when it looks that way).
+- **Extra vibration** from game telemetry (engine, curbs and bumps, ABS, gear shifts, crashes) and **weak-force boost**.
+- **Phone dashboard** (optional): RPM, gear, speed and LEDs on your phone, plus switching profile, rotation and strength over Wi-Fi.
+- **New-version notice** (optional), from this page's Releases.
 - **Diagnostic console** (Ctrl+Shift+L) logging everything, with quick tests.
-
-**Coming in 1.1 (in testing):** extra vibration from telemetry (engine, curbs, ABS, gear shifts, crashes), boost for weak forces,
-a phone dashboard over Wi-Fi (RPM, gear, LEDs, switch profile/rotation/strength), an optional new-version notice and
-**Set up wheel**, an animated step-by-step that teaches the app where each pedal, gear and button is (some G27s come with a different layout).
 
 ### Screenshots
 | | |
@@ -88,11 +89,12 @@ Na primeira abertura, um assistente confere drivers antigos da Logitech, coloca 
 - **Modo Compatibilidade Total** (opcional, desligado de fábrica): vJoy + HidHide para jogos que não aceitam o G27,
   com sensibilidade, pedais combinados e force feedback de volta ao G27.
 - **Calibração dos pedais** gravada no próprio Windows (vale para todos os jogos), **teste do volante** como no LGS e um minijogo 3D para sentir o force feedback.
+- **Configurar volante**: passo a passo animado que ensina ao app onde fica cada pedal, marcha e botão
+  (alguns G27 vêm com outro mapa; o app avisa ao conectar quando parece ser o caso).
+- **Vibração extra** pela telemetria (motor, zebras e buracos, ABS, trocas de marcha, batidas) e **reforço das forças fracas**.
+- **Painel no celular** (opcional): RPM, marcha, velocidade e LEDs no celular, e trocar perfil, rotação e força pelo Wi-Fi.
+- **Aviso de versão nova** (opcional), pela página de Releases.
 - **Console de diagnóstico** (Ctrl+Shift+L) com log de tudo e testes rápidos.
-
-**Na versão 1.1 (em teste):** vibração extra pela telemetria (motor, zebras, ABS, trocas de marcha, batidas), reforço das
-forças fracas, painel no celular pelo Wi-Fi (RPM, marcha, LEDs, trocar perfil/rotação/força), aviso opcional de versão nova e
-**Configurar volante**, um passo a passo animado que ensina ao app onde fica cada pedal, marcha e botão (alguns G27 vêm com outro mapa).
 
 ### Telas
 | | |
