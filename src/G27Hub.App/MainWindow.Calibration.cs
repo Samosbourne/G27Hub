@@ -54,12 +54,15 @@ public partial class MainWindow
         {
             var axis = CalibPedals[i].Axis;
             if (!s.Axes.TryGetValue(axis, out var a)) continue;
-            if (_calibStep == 2 && _calib.TryGetValue(axis, out var c) && a.Value < c.Pressed) _calib[axis] = c with { Pressed = a.Value };
+            // o fundo é o valor mais longe do solto (no G27 do John desce; em alguns volantes sobe, ver InputMap.Rising)
+            if (_calibStep == 2 && _calib.TryGetValue(axis, out var c) && Math.Abs(a.Value - c.Released) > Math.Abs(c.Pressed - c.Released))
+                _calib[axis] = c with { Pressed = a.Value };
             var (fill, text) = _calibRows[i];
-            fill.Width = ((FrameworkElement)fill.Parent).ActualWidth * (1 - a.Normalized); // bruto, sem calibração
-            text.Text = _calibStep == 1 ? T($"agora {a.Value} (solto = 255 num pedal novo)")
+            var rising = G27Buttons.Map.RisesWhenPressed(axis);
+            fill.Width = ((FrameworkElement)fill.Parent).ActualWidth * (rising ? a.Normalized : 1 - a.Normalized); // bruto, sem calibração
+            text.Text = _calibStep == 1 ? T($"agora {a.Value} (solto = {(rising ? 0 : 255)} num pedal novo)")
                 : T($"agora {a.Value} · solto {_calib[axis].Released} · fundo {_calib[axis].Pressed}") +
-                  (_calib[axis].Released - _calib[axis].Pressed < 40 ? T("  ← pise até o fundo") : "  ✓");
+                  (Math.Abs(_calib[axis].Released - _calib[axis].Pressed) < 40 ? T("  ← pise até o fundo") : "  ✓");
         }
     }
 
@@ -79,7 +82,7 @@ public partial class MainWindow
         var saved = new List<string>();
         foreach (var (axis, name) in CalibPedals)
         {
-            if (!_calib.TryGetValue(axis, out var c) || c.Released - c.Pressed < 40) continue; // não foi pisado: mantém como estava
+            if (!_calib.TryGetValue(axis, out var c) || Math.Abs(c.Released - c.Pressed) < 40) continue; // não foi pisado: mantém como estava
             var r = PedalCalibration.Save(axis, c.Pressed, c.Released);
             saved.Add(T($"{name} {r.Pressed}–{r.Released}"));
         }

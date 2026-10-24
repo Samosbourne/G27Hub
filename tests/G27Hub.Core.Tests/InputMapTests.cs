@@ -4,8 +4,8 @@ namespace G27Hub.Core.Tests;
 
 public class InputMapTests
 {
-    // volante "diferente": embreagem no Slider, Y parado no meio, marchas nos botões 9–14 e ré no 15
-    static G27State State(int x = 8192, int z = 255, int rz = 255, int slider = 255, params int[] buttons) =>
+    // volante do colega do John (log de 23/10/2026): embreagem no Slider, solta em 0; Y parado no meio; marchas 9–14, ré 15
+    static G27State State(int x = 8192, int z = 255, int rz = 255, int slider = 0, params int[] buttons) =>
         new(new Dictionary<string, AxisValue>
         {
             ["X"] = new(x, 0, 16383), ["Y"] = new(127, 0, 255), ["Z"] = new(z, 0, 255), ["Rz"] = new(rz, 0, 255), ["Slider"] = new(slider, 0, 255),
@@ -34,9 +34,10 @@ public class InputMapTests
         l.Feed(State(rz: 255));
         Assert.Equal("Rz", l.Map.Brake);
 
-        l.Feed(State(slider: 5));
-        Assert.True(l.Feed(State(slider: 255)));
+        l.Feed(State(slider: 250));
+        Assert.True(l.Feed(State()));
         Assert.Equal("Slider", l.Map.Clutch); // o Y parado no meio não engana
+        Assert.Equal(["Slider"], l.Map.Rising); // solto em 0: sobe ao pisar
 
         // marchas 1–6 nos botões 9–14 (passando pelo neutro), ré no 15 com a 6ª ainda "engatada"
         for (int g = 0; g < 6; g++)
@@ -63,5 +64,21 @@ public class InputMapTests
         Assert.False(l.Feed(State(buttons: 13))); // 1ª ainda engatada: não vira a 2ª
         Assert.True(l.Feed(State(buttons: 14)));
         Assert.Equal(14, l.Map.Gears[1]);
+    }
+
+    [Fact]
+    public void Pedal_que_sobe_ao_pisar_le_certo()
+    {
+        G27Buttons.Map = new InputMap { Clutch = "Slider", Rising = ["Slider"] };
+        try
+        {
+            Assert.Equal(0, State(slider: 0).Clutch);   // solto
+            Assert.Equal(1, State(slider: 255).Clutch); // no fundo
+            Assert.Equal(0, State(z: 255).Throttle);    // os outros continuam descendo
+            // calibrado (o Windows guarda mínimo 5 e máximo 245)
+            Assert.Equal(1, PedalCalibration.Apply(new PedalRange(5, 245), new AxisValue(250, 0, 255), rising: true));
+            Assert.Equal(0, PedalCalibration.Apply(new PedalRange(5, 245), new AxisValue(250, 0, 255), rising: false));
+        }
+        finally { G27Buttons.Map = new InputMap(); }
     }
 }

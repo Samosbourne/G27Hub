@@ -187,6 +187,9 @@ public partial class MainWindow
             if (!s.Axes.TryGetValue(axis, out var a)) return T($"O {name} não aparece no eixo {axis}.");
             if (a.Normalized is > 0.25 and < 0.75) return T($"O {name} (eixo {axis}) está no meio do curso com o pedal solto.");
         }
+        // pedal que aparece pisado com o pé fora: o eixo sobe ao pisar e o mapa não sabe (ex.: mapa de antes da 1.1.1)
+        foreach (var (value, name) in new[] { (s.Throttle, T("acelerador")), (s.Brake, T("freio")), (s.Clutch, T("embreagem")) })
+            if (value > 0.9) return T($"O {name} aparece pisado até o fundo com o pedal solto.");
         return null;
     }
 

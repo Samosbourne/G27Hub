@@ -22,6 +22,13 @@ public sealed class InputMap
     public int[] WheelRight { get; set; } = [7, 19, 20]; // lateral direita, de cima para baixo
     public int[] ShifterRed { get; set; } = [12, 9, 10, 11]; // da esquerda para a direita
     public int[] ShifterBlack { get; set; } = [1, 2, 3, 4];  // losango: baixo, esquerda, direita, cima
+    /// <summary>
+    /// Pedais cujo valor SOBE ao pisar. No G27 do John todos descem (255 solto → 0 no fundo); no do colega a embreagem
+    /// (Slider) fica em 0 solta (23/10/2026).
+    /// </summary>
+    public List<string> Rising { get; set; } = [];
+
+    public bool RisesWhenPressed(string axis) => Rising.Contains(axis);
 
     [JsonIgnore] public bool IsDefault => Describe() == new InputMap().Describe();
 
@@ -29,14 +36,15 @@ public sealed class InputMap
     {
         Steer = Steer, Throttle = Throttle, Brake = Brake, Clutch = Clutch, Gears = [.. Gears], Reverse = Reverse,
         PaddleLeft = PaddleLeft, PaddleRight = PaddleRight, WheelLeft = [.. WheelLeft], WheelRight = [.. WheelRight],
-        ShifterRed = [.. ShifterRed], ShifterBlack = [.. ShifterBlack],
+        ShifterRed = [.. ShifterRed], ShifterBlack = [.. ShifterBlack], Rising = [.. Rising],
     };
 
     /// <summary>Uma linha para o log.</summary>
     public string Describe() =>
         $"volante {Steer}, acelerador {Throttle}, freio {Brake}, embreagem {Clutch}; marchas {string.Join(",", Gears)}, ré {Reverse}; " +
         $"borboletas E{PaddleLeft} D{PaddleRight}; volante E {string.Join(",", WheelLeft)} D {string.Join(",", WheelRight)}; " +
-        $"câmbio vermelhos {string.Join(",", ShifterRed)} pretos {string.Join(",", ShifterBlack)}";
+        $"câmbio vermelhos {string.Join(",", ShifterRed)} pretos {string.Join(",", ShifterBlack)}" +
+        (Rising.Count > 0 ? $"; sobem ao pisar: {string.Join(",", Rising)}" : "");
 }
 
 /// <summary>
@@ -149,6 +157,8 @@ public sealed class InputMapLearner
             && Math.Abs(now.Normalized - rest.Normalized) > BackToRest) return false;
         Assign(id, _candidate);
         _axesUsed.Add(_candidate);
+        Map.Rising.Remove(_candidate);
+        if (rest is { Normalized: < 0.5 }) Map.Rising.Add(_candidate); // solto embaixo: o valor sobe ao pisar
         return Next(s);
     }
 

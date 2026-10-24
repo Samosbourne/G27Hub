@@ -80,5 +80,11 @@ Pedais: Z = acelerador, Rz = freio, Y = embreagem (a confirmar).
 
 ## Volantes com outro mapa (23/10/2026)
 O G27 de um colega do John, em modo nativo (C29B), mostrou o eixo Y parado no meio (127) com a embreagem solta e
-as marchas em outros botões. Firmware e descritor ainda não conhecidos (o app agora loga ao conectar). O app não supõe
-mais o mapa: "Configurar volante" aprende eixos e botões (InputMap). O mapa padrão continua sendo o desta página.
+as marchas em outros botões. O app não supõe mais o mapa: "Configurar volante" aprende eixos e botões (InputMap).
+O mapa padrão continua sendo o desta página.
+
+Log do volante do colega com a 1.1.0 (23/10/2026): **mesmo firmware do John (12.39)**, mas 5 eixos em vez de 4:
+X, Z, Rz, Y e **Slider**. Mapa aprendido: embreagem = Slider, **solta em 0 e subindo ao pisar** (os outros pedais descem);
+marchas 9–14, ré 15; vermelhos do câmbio 1–4; pretos 18,17,19,16; volante E 8,21,23 D 7,20,22. Com o mesmo firmware,
+a diferença deve vir do PC dele (provável driver/filtro da Logitech que reorganiza o volante, como o LGS faz: embreagem
+no Slider e marchas a partir do 9). O mapa guarda os pedais que sobem ao pisar (InputMap.Rising).

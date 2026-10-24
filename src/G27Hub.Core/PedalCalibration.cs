@@ -33,15 +33,18 @@ public static class PedalCalibration
         return r;
     }
 
-    /// <summary>Grava a faixa medida (com uma folga: o fundo vira 100% e o pedal solto vira 0% mesmo se tremer um pouco).</summary>
+    /// <summary>
+    /// Grava a faixa medida (com uma folga: o fundo vira 100% e o pedal solto vira 0% mesmo se tremer um pouco).
+    /// O Windows guarda mínimo e máximo; o sentido (pedal que sobe ou desce ao pisar) fica no InputMap.
+    /// </summary>
     public static PedalRange Save(string axis, int pressed, int released)
     {
-        var range = new PedalRange(pressed + 2, released - 3);
+        int lo = Math.Min(pressed, released) + 2, hi = Math.Max(pressed, released) - 3;
         using var k = Registry.CurrentUser.CreateSubKey($@"{Key}\{Instance[axis]}");
-        k.SetValue("Calibration", BitConverter.GetBytes(range.Pressed)
-            .Concat(BitConverter.GetBytes((range.Pressed + range.Released) / 2))
-            .Concat(BitConverter.GetBytes(range.Released)).ToArray(), RegistryValueKind.Binary);
+        k.SetValue("Calibration", BitConverter.GetBytes(lo).Concat(BitConverter.GetBytes((lo + hi) / 2))
+            .Concat(BitConverter.GetBytes(hi)).ToArray(), RegistryValueKind.Binary);
         Current = Load();
+        var range = pressed < released ? new PedalRange(lo, hi) : new PedalRange(hi, lo);
         AppLog.Ok("HID", $"Pedal {axis} calibrado: fundo {range.Pressed}, solto {range.Released} (bruto 0–255)");
         return range;
     }
@@ -53,9 +56,14 @@ public static class PedalCalibration
         AppLog.Info("HID", "Calibração dos pedais removida (de volta à faixa de fábrica)");
     }
 
-    /// <summary>0..1 pisado, com a calibração se houver.</summary>
-    public static double Apply(string axis, AxisValue a) => Apply(Current.GetValueOrDefault(axis), a);
+    /// <summary>0..1 pisado, com a calibração se houver. rising = o valor sobe ao pisar (InputMap.Rising).</summary>
+    public static double Apply(string axis, AxisValue a, bool rising = false) => Apply(Current.GetValueOrDefault(axis), a, rising);
 
-    public static double Apply(PedalRange? r, AxisValue a) =>
-        r == null || r.Released <= r.Pressed ? 1 - a.Normalized : Math.Clamp((double)(r.Released - a.Value) / (r.Released - r.Pressed), 0, 1);
+    /// <summary>A faixa vem do Windows como mínimo (Pressed) e máximo (Released); o sentido decide qual ponta é o fundo.</summary>
+    public static double Apply(PedalRange? r, AxisValue a, bool rising = false)
+    {
+        if (r == null || r.Released <= r.Pressed) return rising ? a.Normalized : 1 - a.Normalized;
+        var f = (double)(a.Value - r.Pressed) / (r.Released - r.Pressed); // 0 no mínimo, 1 no máximo
+        return Math.Clamp(rising ? f : 1 - f, 0, 1);
+    }
 }

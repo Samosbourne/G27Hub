@@ -2,7 +2,7 @@
 ; Instala só para o usuário (sem administrador). Desinstalar roda "G27Hub.App.exe --uninstall-cleanup", que desfaz
 ; o que o app mudou no PC (force feedback, iniciar com o Windows, calibração, mod do BeamNG, plugin do ETS2, drivers).
 
-#define AppVersion "1.1.0"
+#define AppVersion "1.1.1"
 #define AppExe "G27Hub.App.exe"
 
 [Setup]
